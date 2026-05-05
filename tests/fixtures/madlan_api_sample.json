@@ -1,0 +1,83 @@
+{
+  "data": {
+    "searchResults": [
+      {
+        "listingId": "4gcfn1mafPq",
+        "price": 4500,
+        "rooms": 3,
+        "floor": 2,
+        "totalFloors": 5,
+        "area": 75,
+        "city": "בת ים",
+        "cityName": "בת ים",
+        "neighborhood": "רמת הנשיא",
+        "neighborhoodName": "רמת הנשיא",
+        "street": "הרצל",
+        "streetName": "הרצל",
+        "houseNumber": "15",
+        "lat": 32.0171,
+        "lng": 34.7505,
+        "propertyType": "דירה",
+        "description": "דירת 3 חדרים מרווחת ומוארת ברמת הנשיא. קומה 2 מתוך 5, עם מעלית וחניה. כניסה מיידית.",
+        "images": [
+          {"url": "https://images.madlan.co.il/t_listing_card/listings/4gcfn1mafPq/photo1.jpg"},
+          {"url": "https://images.madlan.co.il/t_listing_card/listings/4gcfn1mafPq/photo2.jpg"}
+        ],
+        "publishedAt": "2026-03-01T10:30:00Z",
+        "updatedAt": "2026-03-05T14:00:00Z",
+        "entryDate": "2026-04-01",
+        "contactName": "ישראל כהן",
+        "contactPhone": "050-1234567",
+        "amenities": [
+          {"name": "parking", "key": "parking"},
+          {"name": "elevator", "key": "elevator"},
+          {"name": "airConditioning", "key": "ac"},
+          {"name": "mamad", "key": "mamad"}
+        ]
+      },
+      {
+        "listingId": "5hdfn2nbgQr",
+        "price": 5800,
+        "rooms": 4,
+        "floor": 4,
+        "totalFloors": 8,
+        "area": 100,
+        "city": "בת ים",
+        "neighborhood": "רמת הנשיא",
+        "street": "ביאליק",
+        "houseNumber": "22",
+        "lat": 32.0185,
+        "lng": 34.7520,
+        "propertyType": "דירה",
+        "description": "דירה גדולה ומרווחת, 4 חדרים, 100 מ\"ר. מרפסת שמש גדולה. נוף לים.",
+        "images": [
+          {"url": "https://images.madlan.co.il/t_listing_card/listings/5hdfn2nbgQr/photo1.jpg"}
+        ],
+        "publishedAt": "2026-02-28T08:00:00Z",
+        "amenities": [
+          {"name": "balcony", "key": "balcony"},
+          {"name": "elevator", "key": "elevator"}
+        ]
+      },
+      {
+        "listingId": "6iegn3ocHRs",
+        "price": 3200,
+        "rooms": 2.5,
+        "floor": 1,
+        "area": 55,
+        "city": "בת ים",
+        "street": "רוטשילד",
+        "lat": 32.0160,
+        "lng": 34.7490,
+        "propertyType": "סטודיו",
+        "description": "סטודיו מעוצב ומרוהט במלואו. מתאים לזוג צעיר.",
+        "images": [],
+        "publishedAt": "2026-03-03T16:00:00Z",
+        "amenities": [
+          {"name": "furnished", "key": "furnished"},
+          {"name": "airConditioning", "key": "ac"}
+        ]
+      }
+    ]
+  }
+}

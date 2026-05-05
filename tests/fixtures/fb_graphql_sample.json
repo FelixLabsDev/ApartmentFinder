@@ -1,0 +1,339 @@
+{
+  "data": {
+    "marketplace_search": {
+      "feed_units": {
+        "edges": [
+          {
+            "node": {
+              "listing": {
+                "id": "1234567890111",
+                "marketplace_listing_title": "דירת 3 חדרים בפלורנטין",
+                "listing_price": {
+                  "amount": "5200",
+                  "currency": "ILS"
+                },
+                "location": {
+                  "reverse_geocode": {
+                    "city": "Tel Aviv",
+                    "state": "Tel Aviv District"
+                  },
+                  "latitude": 32.0558,
+                  "longitude": 34.7684
+                },
+                "primary_listing_photo": {
+                  "image": {
+                    "uri": "https://scontent.ftlv1-1.fna.fbcdn.net/v/t45/photo1.jpg"
+                  }
+                },
+                "listing_photos": [
+                  {
+                    "image": {
+                      "uri": "https://scontent.ftlv1-1.fna.fbcdn.net/v/t45/photo1.jpg"
+                    }
+                  },
+                  {
+                    "image": {
+                      "uri": "https://scontent.ftlv1-1.fna.fbcdn.net/v/t45/photo2.jpg"
+                    }
+                  },
+                  {
+                    "image": {
+                      "uri": "https://scontent.ftlv1-1.fna.fbcdn.net/v/t45/photo3.jpg"
+                    }
+                  }
+                ],
+                "redacted_description": {
+                  "text": "דירת 3 חדרים בפלורנטין, קומה 2, מרפסת, מיזוג, חניה. כניסה מיידית."
+                },
+                "creation_time": 1706198400,
+                "custom_title": null,
+                "property_type": "APARTMENT",
+                "custom_sub_titles_with_rendering_flags": [
+                  {
+                    "subtitle": "3 חדרים"
+                  },
+                  {
+                    "subtitle": "50 מ\"ר"
+                  },
+                  {
+                    "subtitle": "קומה 2"
+                  }
+                ],
+                "attribute_data": {
+                  "bedrooms": 3,
+                  "bathrooms": 1,
+                  "area_size": 50,
+                  "area_unit": "SQ_METERS",
+                  "property_type": "APARTMENT",
+                  "num_floors": null,
+                  "floor_number": 2,
+                  "furnish_type": "FURNISHED",
+                  "parking_type": "STREET",
+                  "heating_type": "AIR_CONDITIONING",
+                  "laundry_type": "IN_UNIT"
+                },
+                "seller": {
+                  "id": "100000111222333",
+                  "name": "דוד כהן"
+                },
+                "is_pending": false,
+                "is_sold": false
+              },
+              "story_key": "story_1234567890111"
+            },
+            "cursor": "AQHRbG9..."
+          },
+          {
+            "node": {
+              "listing": {
+                "id": "9876543210222",
+                "marketplace_listing_title": "Spacious 2BR in Ramat Aviv",
+                "listing_price": {
+                  "amount": "7500",
+                  "currency": "ILS"
+                },
+                "location": {
+                  "reverse_geocode": {
+                    "city": "Tel Aviv",
+                    "state": "Tel Aviv District"
+                  },
+                  "latitude": 32.1133,
+                  "longitude": 34.7981
+                },
+                "primary_listing_photo": {
+                  "image": {
+                    "uri": "https://scontent.ftlv1-1.fna.fbcdn.net/v/t45/photo4.jpg"
+                  }
+                },
+                "listing_photos": [
+                  {
+                    "image": {
+                      "uri": "https://scontent.ftlv1-1.fna.fbcdn.net/v/t45/photo4.jpg"
+                    }
+                  }
+                ],
+                "redacted_description": {
+                  "text": "Beautiful apartment in Ramat Aviv, 2 bedrooms, fully furnished, elevator, parking. Available from March 1st."
+                },
+                "creation_time": 1706284800,
+                "custom_title": "Spacious 2BR in Ramat Aviv",
+                "property_type": "APARTMENT",
+                "custom_sub_titles_with_rendering_flags": [
+                  {
+                    "subtitle": "2 חדרים"
+                  },
+                  {
+                    "subtitle": "70 מ\"ר"
+                  },
+                  {
+                    "subtitle": "קומה 5"
+                  }
+                ],
+                "attribute_data": {
+                  "bedrooms": 2,
+                  "bathrooms": 1,
+                  "area_size": 70,
+                  "area_unit": "SQ_METERS",
+                  "property_type": "APARTMENT",
+                  "num_floors": 8,
+                  "floor_number": 5,
+                  "furnish_type": "FURNISHED",
+                  "parking_type": "COVERED",
+                  "heating_type": "AIR_CONDITIONING",
+                  "laundry_type": "IN_UNIT"
+                },
+                "seller": {
+                  "id": "100000444555666",
+                  "name": "Sarah Levy"
+                },
+                "is_pending": false,
+                "is_sold": false
+              },
+              "story_key": "story_9876543210222"
+            },
+            "cursor": "AQHRcX0..."
+          },
+          {
+            "node": {
+              "listing": {
+                "id": "5555666677733",
+                "marketplace_listing_title": "סטודיו מרוהט במרכז העיר",
+                "listing_price": {
+                  "amount": "3800",
+                  "currency": "ILS"
+                },
+                "location": {
+                  "reverse_geocode": {
+                    "city": "Jerusalem",
+                    "state": "Jerusalem District"
+                  },
+                  "latitude": 31.7767,
+                  "longitude": 35.2345
+                },
+                "primary_listing_photo": {
+                  "image": {
+                    "uri": "https://scontent.ftlv1-1.fna.fbcdn.net/v/t45/photo5.jpg"
+                  }
+                },
+                "listing_photos": [
+                  {
+                    "image": {
+                      "uri": "https://scontent.ftlv1-1.fna.fbcdn.net/v/t45/photo5.jpg"
+                    }
+                  },
+                  {
+                    "image": {
+                      "uri": "https://scontent.ftlv1-1.fna.fbcdn.net/v/t45/photo6.jpg"
+                    }
+                  }
+                ],
+                "redacted_description": {
+                  "text": "סטודיו מרוהט לגמרי במרכז ירושלים. מיזוג, מעלית, ממ\"ד. מתאים לסטודנטים."
+                },
+                "creation_time": 1705939200,
+                "custom_title": null,
+                "property_type": "STUDIO",
+                "custom_sub_titles_with_rendering_flags": [
+                  {
+                    "subtitle": "1 חדרים"
+                  },
+                  {
+                    "subtitle": "30 מ\"ר"
+                  },
+                  {
+                    "subtitle": "קומה 3"
+                  }
+                ],
+                "attribute_data": {
+                  "bedrooms": 1,
+                  "bathrooms": 1,
+                  "area_size": 30,
+                  "area_unit": "SQ_METERS",
+                  "property_type": "STUDIO",
+                  "num_floors": 6,
+                  "floor_number": 3,
+                  "furnish_type": "FURNISHED",
+                  "parking_type": null,
+                  "heating_type": "AIR_CONDITIONING",
+                  "laundry_type": null
+                },
+                "seller": {
+                  "id": "100000777888999",
+                  "name": "יוסי אברהם"
+                },
+                "is_pending": false,
+                "is_sold": false
+              },
+              "story_key": "story_5555666677733"
+            },
+            "cursor": "AQHRdY1..."
+          },
+          {
+            "node": {
+              "listing": {
+                "id": "1111222233344",
+                "marketplace_listing_title": "פנטהאוז מדהים 4 חדרים",
+                "listing_price": {
+                  "amount": "2500",
+                  "currency": "USD"
+                },
+                "location": {
+                  "reverse_geocode": {
+                    "city": "Haifa",
+                    "state": "Haifa District"
+                  },
+                  "latitude": 32.7940,
+                  "longitude": 34.9896
+                },
+                "primary_listing_photo": {
+                  "image": {
+                    "uri": "https://scontent.ftlv1-1.fna.fbcdn.net/v/t45/photo7.jpg"
+                  }
+                },
+                "listing_photos": [
+                  {
+                    "image": {
+                      "uri": "https://scontent.ftlv1-1.fna.fbcdn.net/v/t45/photo7.jpg"
+                    }
+                  },
+                  {
+                    "image": {
+                      "uri": "https://scontent.ftlv1-1.fna.fbcdn.net/v/t45/photo8.jpg"
+                    }
+                  },
+                  {
+                    "image": {
+                      "uri": "https://scontent.ftlv1-1.fna.fbcdn.net/v/t45/photo9.jpg"
+                    }
+                  },
+                  {
+                    "image": {
+                      "uri": "https://scontent.ftlv1-1.fna.fbcdn.net/v/t45/photo10.jpg"
+                    }
+                  },
+                  {
+                    "image": {
+                      "uri": "https://scontent.ftlv1-1.fna.fbcdn.net/v/t45/photo11.jpg"
+                    }
+                  }
+                ],
+                "redacted_description": {
+                  "text": "Amazing penthouse in Haifa, 4 bedrooms, sea view, parking, elevator, storage room, pet friendly. Long term only."
+                },
+                "creation_time": 1706025600,
+                "custom_title": "פנטהאוז מדהים 4 חדרים",
+                "property_type": "PENTHOUSE",
+                "custom_sub_titles_with_rendering_flags": [
+                  {
+                    "subtitle": "4 חדרים"
+                  },
+                  {
+                    "subtitle": "120 מ\"ר"
+                  },
+                  {
+                    "subtitle": "קומה 10"
+                  }
+                ],
+                "attribute_data": {
+                  "bedrooms": 4,
+                  "bathrooms": 2,
+                  "area_size": 120,
+                  "area_unit": "SQ_METERS",
+                  "property_type": "PENTHOUSE",
+                  "num_floors": 10,
+                  "floor_number": 10,
+                  "furnish_type": "UNFURNISHED",
+                  "parking_type": "GARAGE",
+                  "heating_type": "AIR_CONDITIONING",
+                  "laundry_type": "IN_UNIT"
+                },
+                "seller": {
+                  "id": "100000000111222",
+                  "name": "Michael Ben David"
+                },
+                "is_pending": false,
+                "is_sold": false
+              },
+              "story_key": "story_1111222233344"
+            },
+            "cursor": "AQHReZ2..."
+          },
+          {
+            "node": {
+              "listing": null,
+              "story_key": "story_sponsored_001"
+            },
+            "cursor": "AQHRfA3..."
+          }
+        ],
+        "page_info": {
+          "has_next_page": true,
+          "end_cursor": "AQHReZ2..."
+        }
+      }
+    }
+  },
+  "extensions": {
+    "is_final": true
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "id": "1234567890111",
+  "marketplace_listing_title": "דירת 3 חדרים בפלורנטין",
+  "listing_price": {
+    "amount": "5200",
+    "currency": "ILS"
+  },
+  "location": {
+    "reverse_geocode": {
+      "city": "Tel Aviv",
+      "state": "Tel Aviv District"
+    },
+    "latitude": 32.0558,
+    "longitude": 34.7684
+  },
+  "primary_listing_photo": {
+    "image": {
+      "uri": "https://scontent.ftlv1-1.fna.fbcdn.net/v/t45/photo1.jpg"
+    }
+  },
+  "listing_photos": [
+    {
+      "image": {
+        "uri": "https://scontent.ftlv1-1.fna.fbcdn.net/v/t45/photo1.jpg"
+      }
+    },
+    {
+      "image": {
+        "uri": "https://scontent.ftlv1-1.fna.fbcdn.net/v/t45/photo2.jpg"
+      }
+    },
+    {
+      "image": {
+        "uri": "https://scontent.ftlv1-1.fna.fbcdn.net/v/t45/photo3.jpg"
+      }
+    }
+  ],
+  "redacted_description": {
+    "text": "דירת 3 חדרים בפלורנטין, קומה 2, מרפסת, מיזוג, חניה. כניסה מיידית."
+  },
+  "creation_time": 1706198400,
+  "custom_title": null,
+  "property_type": "APARTMENT",
+  "custom_sub_titles_with_rendering_flags": [
+    {
+      "subtitle": "3 חדרים"
+    },
+    {
+      "subtitle": "50 מ\"ר"
+    },
+    {
+      "subtitle": "קומה 2"
+    }
+  ],
+  "attribute_data": {
+    "bedrooms": 3,
+    "bathrooms": 1,
+    "area_size": 50,
+    "area_unit": "SQ_METERS",
+    "property_type": "APARTMENT",
+    "num_floors": 5,
+    "floor_number": 2,
+    "furnish_type": "FURNISHED",
+    "parking_type": "STREET",
+    "heating_type": "AIR_CONDITIONING",
+    "laundry_type": "IN_UNIT"
+  },
+  "seller": {
+    "id": "100000111222333",
+    "name": "דוד כהן"
+  },
+  "is_pending": false,
+  "is_sold": false
+}

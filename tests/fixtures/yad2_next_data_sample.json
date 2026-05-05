@@ -1,0 +1,454 @@
+{
+  "props": {
+    "pageProps": {
+      "isSpnRealestateAuthGuard": false,
+      "dehydratedState": {
+        "mutations": [],
+        "queries": [
+          {
+            "state": {
+              "data": {
+                "key": "regions-lobby-links",
+                "value": "[{\"action\":\"forsale\",\"title\":\"הצטרפו למיליוני מחפשי דירות ונכסים בישראל\",\"region\":\"מרכז והשרון\",\"links\":[{\"text\":\"דירות במרכז והשרון\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/forsale/center-and-sharon?property=1\"},{\"text\":\"דירות גן במרכז והשרון\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/forsale/center-and-sharon?property=3\"},{\"text\":\"פנטהאוזים במרכז והשרון\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/forsale/center-and-sharon?property=6\"},{\"text\":\"דופלקסים במרכז והשרון\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/forsale/center-and-sharon?property=7\"},{\"text\":\"מגרשים במרכז והשרון\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/forsale/center-and-sharon?property=33\"}]},{\"action\":\"forsale\",\"title\":\"הצטרפו למיליוני מחפשי דירות ונכסים בישראל\",\"region\":\"תל אביב והסביבה\",\"links\":[{\"text\":\"דירות בתל אביב והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/forsale/tel-aviv-area?property=1\"},{\"text\":\"דירות גן בתל אביב והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/forsale/tel-aviv-area?property=3\"},{\"text\":\"פנטהאוזים בתל אביב והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/forsale/tel-aviv-area?property=6\"},{\"text\":\"דופלקסים בתל אביב והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/forsale/tel-aviv-area?property=7\"},{\"text\":\"מגרשים בתל אביב והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/forsale/tel-aviv-area?property=33\"}]},{\"action\":\"forsale\",\"title\":\"הצטרפו למיליוני מחפשי דירות ונכסים בישראל\",\"region\":\"ירושלים והסביבה\",\"links\":[{\"text\":\"דירות בירושלים והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/forsale/jerusalem-area?property=1\"},{\"text\":\"דירות גן בירושלים והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/forsale/jerusalem-area?property=3\"},{\"text\":\"פנטהאוזים בירושלים והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/forsale/jerusalem-area?property=6\"},{\"text\":\"דופלקסים בירושלים והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/forsale/jerusalem-area?property=7\"},{\"text\":\"מגרשים בירושלים והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/forsale/jerusalem-area?property=33\"}]},{\"action\":\"forsale\",\"title\":\"הצטרפו למיליוני מחפשי דירות ונכסים בישראל\",\"region\":\"דרום\",\"links\":[{\"text\":\"דירות בדרום\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/forsale/south?property=1\"},{\"text\":\"דירות גן בדרום\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/forsale/south?property=3\"},{\"text\":\"פנטהאוזים בדרום\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/forsale/south?property=6\"},{\"text\":\"דופלקסים בדרום\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/forsale/south?property=7\"},{\"text\":\"מגרשים בדרום\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/forsale/south?property=33\"}]},{\"action\":\"forsale\",\"title\":\"הצטרפו למיליוני מחפשי דירות ונכסים בישראל\",\"region\":\"מישור החוף הצפוני\",\"links\":[{\"text\":\"דירות במישור החוף הצפוני\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/forsale/coastal-north?property=1\"},{\"text\":\"דירות גן במישור החוף הצפוני\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/forsale/coastal-north?property=3\"},{\"text\":\"פנטהאוזים במישור החוף הצפוני\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/forsale/coastal-north?property=6\"},{\"text\":\"דופלקסים במישור החוף הצפוני\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/forsale/coastal-north?property=7\"},{\"text\":\"מגרשים במישור החוף הצפוני\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/forsale/coastal-north?property=33\"}]},{\"action\":\"forsale\",\"title\":\"הצטרפו למיליוני מחפשי דירות ונכסים בישראל\",\"region\":\"צפון והעמקים\",\"links\":[{\"text\":\"דירות בצפון והעמקים\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/forsale/north-and-valleys?property=1\"},{\"text\":\"דירות גן בצפון והעמקים\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/forsale/north-and-valleys?property=3\"},{\"text\":\"פנטהאוזים בצפון והעמקים\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/forsale/north-and-valleys?property=6\"},{\"text\":\"דופלקסים בצפון והעמקים\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/forsale/north-and-valleys?property=7\"},{\"text\":\"מגרשים בצפון והעמקים\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/forsale/north-and-valleys?property=33\"}]},{\"action\":\"forsale\",\"title\":\"הצטרפו למיליוני מחפשי דירות ונכסים בישראל\",\"region\":\"יהודה, שומרון ובקעת הירדן\",\"links\":[{\"text\":\"דירות ביהודה, שומרון ובקעת הירדן\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/forsale/partnership/east?property=1\"},{\"text\":\"דירות גן ביהודה, שומרון ובקעת הירדן\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/forsale/partnership/east?property=3\"},{\"text\":\"פנטהאוזים ביהודה, שומרון ובקעת הירדן\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/forsale/partnership/east?property=6\"},{\"text\":\"דופלקסים ביהודה, שומרון ובקעת הירדן\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/forsale/partnership/east?property=7\"},{\"text\":\"מגרשים ביהודה, שומרון ובקעת הירדן\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/forsale/partnership/east?property=33\"}]},{\"action\":\"rent\",\"title\":\"הצטרפו למיליוני מחפשי דירות ונכסים בישראל\",\"region\":\"מרכז והשרון\",\"links\":[{\"text\":\"דירות במרכז והשרון\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/rent/center-and-sharon?property=1\"},{\"text\":\"דירות גן במרכז והשרון\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/rent/center-and-sharon?property=3\"},{\"text\":\"פנטהאוזים במרכז והשרון\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/rent/center-and-sharon?property=6\"},{\"text\":\"דופלקסים במרכז והשרון\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/rent/center-and-sharon?property=7\"},{\"text\":\"יחידות דיור במרכז והשרון\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/rent/center-and-sharon?property=11\"}]},{\"action\":\"rent\",\"title\":\"הצטרפו למיליוני מחפשי דירות ונכסים בישראל\",\"region\":\"תל אביב והסביבה\",\"links\":[{\"text\":\"דירות בתל אביב והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/rent/tel-aviv-area?property=1\"},{\"text\":\"דירות גן בתל אביב והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/rent/tel-aviv-area?property=3\"},{\"text\":\"פנטהאוזים בתל אביב והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/rent/tel-aviv-area?property=6\"},{\"text\":\"דופלקסים בתל אביב והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/rent/tel-aviv-area?property=7\"},{\"text\":\"יחידות דיור בתל אביב והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/rent/tel-aviv-area?property=11\"}]},{\"action\":\"rent\",\"title\":\"הצטרפו למיליוני מחפשי דירות ונכסים בישראל\",\"region\":\"ירושלים והסביבה\",\"links\":[{\"text\":\"דירות בירושלים והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/rent/jerusalem-area?property=1\"},{\"text\":\"דירות גן בירושלים והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/rent/jerusalem-area?property=3\"},{\"text\":\"פנטהאוזים בירושלים והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/rent/jerusalem-area?property=6\"},{\"text\":\"דופלקסים בירושלים והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/rent/jerusalem-area?property=7\"},{\"text\":\"יחידות דיור בירושלים והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/rent/jerusalem-area?property=11\"}]},{\"action\":\"rent\",\"title\":\"הצטרפו למיליוני מחפשי דירות ונכסים בישראל\",\"region\":\"דרום\",\"links\":[{\"text\":\"דירות בדרום\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/rent/south?property=1\"},{\"text\":\"דירות גן בדרום\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/rent/south?property=3\"},{\"text\":\"פנטהאוזים בדרום\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/rent/south?property=6\"},{\"text\":\"דופלקסים בדרום\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/rent/south?property=7\"},{\"text\":\"יחידות דיור בדרום\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/rent/south?property=11\"}]},{\"action\":\"rent\",\"title\":\"הצטרפו למיליוני מחפשי דירות ונכסים בישראל\",\"region\":\"מישור החוף הצפוני\",\"links\":[{\"text\":\"דירות במישור החוף הצפוני\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/rent/coastal-north?property=1\"},{\"text\":\"דירות גן במישור החוף הצפוני\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/rent/coastal-north?property=3\"},{\"text\":\"פנטהאוזים במישור החוף הצפוני\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/rent/coastal-north?property=6\"},{\"text\":\"דופלקסים במישור החוף הצפוני\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/rent/coastal-north?property=7\"},{\"text\":\"יחידות דיור במישור החוף הצפוני\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/rent/coastal-north?property=11\"}]},{\"action\":\"rent\",\"title\":\"הצטרפו למיליוני מחפשי דירות ונכסים בישראל\",\"region\":\"צפון והעמקים\",\"links\":[{\"text\":\"דירות בצפון והעמקים\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/rent/north-and-valleys?property=1\"},{\"text\":\"דירות גן בצפון והעמקים\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/rent/north-and-valleys?property=3\"},{\"text\":\"פנטהאוזים בצפון והעמקים\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/rent/north-and-valleys?property=6\"},{\"text\":\"דופלקסים בצפון והעמקים\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/rent/north-and-valleys?property=7\"},{\"text\":\"יחידות דיור בצפון והעמקים\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/rent/north-and-valleys?property=11\"}]},{\"action\":\"rent\",\"title\":\"הצטרפו למיליוני מחפשי דירות ונכסים בישראל\",\"region\":\"יהודה, שומרון ובקעת הירדן\",\"links\":[{\"text\":\"דירות ביהודה, שומרון ובקעת הירדן\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/rent/partnership/east?property=1\"},{\"text\":\"דירות גן ביהודה, שומרון ובקעת הירדן\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/rent/partnership/east?property=3\"},{\"text\":\"פנטהאוזים ביהודה, שומרון ובקעת הירדן\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/rent/partnership/east?property=6\"},{\"text\":\"דופלקסים ביהודה, שומרון ובקעת הירדן\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/rent/partnership/east?property=7\"},{\"text\":\"יחידות דיור ביהודה, שומרון ובקעת הירדן\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/rent/partnership/east?property=11\"}]},{\"action\":\"commercial\",\"title\":\"הצטרפו למיליוני מחפשי דירות ונכסים בישראל\",\"region\":\"מרכז והשרון\",\"links\":[{\"text\":\"משרדים במרכז והשרון\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/commercial/center-and-sharon?property=12\"},{\"text\":\"חנויות במרכז והשרון\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/commercial/center-and-sharon?property=13\"},{\"text\":\"מחסנים במרכז והשרון\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/commercial/center-and-sharon?property=16\"},{\"text\":\"משרדים במרכז והשרון\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/commercial/center-and-sharon?property=35\"},{\"text\":\"מבני תעשיה במרכז והשרון\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/commercial/center-and-sharon?property=19\"}]},{\"action\":\"commercial\",\"title\":\"הצטרפו למיליוני מחפשי דירות ונכסים בישראל\",\"region\":\"תל אביב והסביבה\",\"links\":[{\"text\":\"משרדים בתל אביב והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/commercial/tel-aviv-area?property=12\"},{\"text\":\"חנויות בתל אביב והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/commercial/tel-aviv-area?property=13\"},{\"text\":\"מחסנים בתל אביב והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/commercial/tel-aviv-area?property=16\"},{\"text\":\"משרדים בתל אביב והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/commercial/tel-aviv-area?property=35\"},{\"text\":\"מבני תעשיה בתל אביב והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/commercial/tel-aviv-area?property=19\"}]},{\"action\":\"commercial\",\"title\":\"הצטרפו למיליוני מחפשי דירות ונכסים בישראל\",\"region\":\"ירושלים והסביבה\",\"links\":[{\"text\":\"משרדים בירושלים והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/commercial/jerusalem-area?property=12\"},{\"text\":\"חנויות בירושלים והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/commercial/jerusalem-area?property=13\"},{\"text\":\"מחסנים בירושלים והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/commercial/jerusalem-area?property=16\"},{\"text\":\"משרדים בירושלים והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/commercial/jerusalem-area?property=35\"},{\"text\":\"מבני תעשיה בירושלים והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/commercial/jerusalem-area?property=19\"}]},{\"action\":\"commercial\",\"title\":\"הצטרפו למיליוני מחפשי דירות ונכסים בישראל\",\"region\":\"דרום\",\"links\":[{\"text\":\"משרדים בדרום\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/commercial/south?property=12\"},{\"text\":\"חנויות בדרום\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/commercial/south?property=13\"},{\"text\":\"מחסנים בדרום\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/commercial/south?property=16\"},{\"text\":\"משרדים בדרום\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/commercial/south?property=35\"},{\"text\":\"מבני תעשיה בדרום\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/commercial/south?property=19\"}]},{\"action\":\"commercial\",\"title\":\"הצטרפו למיליוני מחפשי דירות ונכסים בישראל\",\"region\":\"מישור החוף הצפוני\",\"links\":[{\"text\":\"משרדים במישור החוף הצפוני\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/commercial/coastal-north?property=12\"},{\"text\":\"חנויות במישור החוף הצפוני\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/commercial/coastal-north?property=13\"},{\"text\":\"מחסנים במישור החוף הצפוני\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/commercial/coastal-north?property=16\"},{\"text\":\"משרדים במישור החוף הצפוני\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/commercial/coastal-north?property=35\"},{\"text\":\"מבני תעשיה במישור החוף הצפוני\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/commercial/coastal-north?property=19\"}]},{\"action\":\"commercial\",\"title\":\"הצטרפו למיליוני מחפשי דירות ונכסים בישראל\",\"region\":\"צפון והעמקים\",\"links\":[{\"text\":\"משרדים בצפון והעמקים\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/commercial/north-and-valleys?property=12\"},{\"text\":\"חנויות בצפון והעמקים\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/commercial/north-and-valleys?property=13\"},{\"text\":\"מחסנים בצפון והעמקים\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/commercial/north-and-valleys?property=16\"},{\"text\":\"משרדים בצפון והעמקים\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/commercial/north-and-valleys?property=35\"},{\"text\":\"מבני תעשיה בצפון והעמקים\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/commercial/north-and-valleys?property=19\"}]},{\"action\":\"commercial\",\"title\":\"הצטרפו למיליוני מחפשי דירות ונכסים בישראל\",\"region\":\"יהודה, שומרון ובקעת הירדן\",\"links\":[{\"text\":\"משרדים ביהודה, שומרון ובקעת הירדן\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/commercial/partnership/east?property=12\"},{\"text\":\"חנויות ביהודה, שומרון ובקעת הירדן\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/commercial/partnership/east?property=13\"},{\"text\":\"מחסנים ביהודה, שומרון ובקעת הירדן\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/commercial/partnership/east?property=16\"},{\"text\":\"משרדים ביהודה, שומרון ובקעת הירדן\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/commercial/partnership/east?property=35\"},{\"text\":\"מבני תעשיה ביהודה, שומרון ובקעת הירדן\",\"relativeUrl\":\"https://www.yad2.co.il/realestate/commercial/partnership/east?property=19\"}]},{\"action\":\"yad1\",\"title\":\"הצטרפו למיליוני מחפשי פרויקטים חדשים בישראל\",\"region\":\"מרכז והשרון\",\"links\":[{\"text\":\"דופלקסים במרכז והשרון\",\"relativeUrl\":\"https://www.yad2.co.il/yad1/newprojects/center-and-sharon?propertyType=duplex\"},{\"text\":\"דירות על הים במרכז והשרון\",\"relativeUrl\":\"https://www.yad2.co.il/yad1/newprojects/center-and-sharon?propertyType=seaside\"},{\"text\":\"דירות גן במרכז והשרון\",\"relativeUrl\":\"https://www.yad2.co.il/yad1/newprojects/center-and-sharon?propertyType=garden\"},{\"text\":\"פנטהאוזים במרכז והשרון\",\"relativeUrl\":\"https://www.yad2.co.il/yad1/newprojects/center-and-sharon?propertyType=penthouse\"}]},{\"action\":\"yad1\",\"title\":\"הצטרפו למיליוני מחפשי פרויקטים חדשים בישראל\",\"region\":\"תל אביב והסביבה\",\"links\":[{\"text\":\"דופלקסים בתל אביב והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/yad1/newprojects/tel-aviv-area?propertyType=duplex\"},{\"text\":\"דירות על הים בתל אביב והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/yad1/newprojects/tel-aviv-area?propertyType=seaside\"},{\"text\":\"דירות גן בתל אביב והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/yad1/newprojects/tel-aviv-area?propertyType=garden\"},{\"text\":\"פנטהאוזים בתל אביב והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/yad1/newprojects/tel-aviv-area?propertyType=penthouse\"}]},{\"action\":\"yad1\",\"title\":\"הצטרפו למיליוני מחפשי פרויקטים חדשים בישראל\",\"region\":\"ירושלים והסביבה\",\"links\":[{\"text\":\"דופלקסים בירושלים והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/yad1/newprojects/jerusalem-area?propertyType=duplex\"},{\"text\":\"דירות על הים בירושלים והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/yad1/newprojects/jerusalem-area?propertyType=seaside\"},{\"text\":\"דירות גן בירושלים והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/yad1/newprojects/jerusalem-area?propertyType=garden\"},{\"text\":\"פנטהאוזים בירושלים והסביבה\",\"relativeUrl\":\"https://www.yad2.co.il/yad1/newprojects/jerusalem-area?propertyType=penthouse\"}]},{\"action\":\"yad1\",\"title\":\"הצטרפו למיליוני מחפשי פרויקטים חדשים בישראל\",\"region\":\"דרום\",\"links\":[{\"text\":\"דופלקסים בדרום\",\"relativeUrl\":\"https://www.yad2.co.il/yad1/newprojects/south?propertyType=duplex\"},{\"text\":\"דירות על הים בדרום\",\"relativeUrl\":\"https://www.yad2.co.il/yad1/newprojects/south?propertyType=seaside\"},{\"text\":\"דירות גן בדרום\",\"relativeUrl\":\"https://www.yad2.co.il/yad1/newprojects/south?propertyType=garden\"},{\"text\":\"פנטהאוזים בדרום\",\"relativeUrl\":\"https://www.yad2.co.il/yad1/newprojects/south?propertyType=penthouse\"}]},{\"action\":\"yad1\",\"title\":\"הצטרפו למיליוני מחפשי פרויקטים חדשים בישראל\",\"region\":\"מישור החוף הצפוני\",\"links\":[{\"text\":\"דופלקסים במישור החוף הצפוני\",\"relativeUrl\":\"https://www.yad2.co.il/yad1/newprojects/coastal-north?propertyType=duplex\"},{\"text\":\"דירות על הים במישור החוף הצפוני\",\"relativeUrl\":\"https://www.yad2.co.il/yad1/newprojects/coastal-north?propertyType=seaside\"},{\"text\":\"דירות גן במישור החוף הצפוני\",\"relativeUrl\":\"https://www.yad2.co.il/yad1/newprojects/coastal-north?propertyType=garden\"},{\"text\":\"פנטהאוזים במישור החוף הצפוני\",\"relativeUrl\":\"https://www.yad2.co.il/yad1/newprojects/coastal-north?propertyType=penthouse\"}]},{\"action\":\"yad1\",\"title\":\"הצטרפו למיליוני מחפשי פרויקטים חדשים בישראל\",\"region\":\"צפון והעמקים\",\"links\":[{\"text\":\"דופלקסים בצפון והעמקים\",\"relativeUrl\":\"https://www.yad2.co.il/yad1/newprojects/north-and-valleys?propertyType=duplex\"},{\"text\":\"דירות על הים בצפון והעמקים\",\"relativeUrl\":\"https://www.yad2.co.il/yad1/newprojects/north-and-valleys?propertyType=seaside\"},{\"text\":\"דירות גן בצפון והעמקים\",\"relativeUrl\":\"https://www.yad2.co.il/yad1/newprojects/north-and-valleys?propertyType=garden\"},{\"text\":\"פנטהאוזים בצפון והעמקים\",\"relativeUrl\":\"https://www.yad2.co.il/yad1/newprojects/north-and-valleys?propertyType=penthouse\"}]},{\"action\":\"yad1\",\"title\":\"הצטרפו למיליוני מחפשי פרויקטים חדשים בישראל\",\"region\":\"יהודה, שומרון ובקעת הירדן\",\"links\":[{\"text\":\"דופלקסים ביהודה, שומרון ובקעת הירדן\",\"relativeUrl\":\"https://www.yad2.co.il/yad1/newprojects/partnership/east?propertyType=duplex\"},{\"text\":\"דירות על הים ביהודה, שומרון ובקעת הירדן\",\"relativeUrl\":\"https://www.yad2.co.il/yad1/newprojects/partnership/east?propertyType=seaside\"},{\"text\":\"דירות גן ביהודה, שומרון ובקעת הירדן\",\"relativeUrl\":\"https://www.yad2.co.il/yad1/newprojects/partnership/east?propertyType=garden\"},{\"text\":\"פנטהאוזים ביהודה, שומרון ובקעת הירדן\",\"relativeUrl\":\"https://www.yad2.co.il/yad1/newprojects/partnership/east?propertyType=penthouse\"}]}]",
+                "version": 24,
+                "createdAt": "2026-02-16T18:29:10.078Z",
+                "updatedAt": "2026-02-16T18:29:10.078Z",
+                "otherVersions": [
+                  {
+                    "version": 23,
+                    "createdAt": "2026-02-16T18:29:10.078Z",
+                    "updatedAt": "2026-02-16T18:29:10.078Z"
+                  },
+                  {
+                    "version": 22,
+                    "createdAt": "2026-02-16T18:26:44.214Z",
+                    "updatedAt": "2026-02-16T18:29:10.089Z"
+                  },
+                  {
+                    "version": 21,
+                    "createdAt": "2026-02-16T18:24:23.331Z",
+                    "updatedAt": "2026-02-16T18:29:10.089Z"
+                  },
+                  {
+                    "version": 20,
+                    "createdAt": "2026-01-29T17:45:05.240Z",
+                    "updatedAt": "2026-02-16T18:29:10.089Z"
+                  },
+                  {
+                    "version": 19,
+                    "createdAt": "2026-01-29T17:44:13.536Z",
+                    "updatedAt": "2026-02-16T18:29:10.089Z"
+                  },
+                  {
+                    "version": 18,
+                    "createdAt": "2026-01-26T14:29:49.148Z",
+                    "updatedAt": "2026-02-16T18:29:10.089Z"
+                  },
+                  {
+                    "version": 17,
+                    "createdAt": "2026-01-26T14:02:29.068Z",
+                    "updatedAt": "2026-02-16T18:29:10.089Z"
+                  },
+                  {
+                    "version": 16,
+                    "createdAt": "2026-01-26T09:25:49.197Z",
+                    "updatedAt": "2026-02-16T18:29:10.089Z"
+                  }
+                ]
+              },
+              "dataUpdateCount": 1,
+              "dataUpdatedAt": 1772057826839,
+              "error": null,
+              "errorUpdateCount": 0,
+              "errorUpdatedAt": 0,
+              "fetchFailureCount": 0,
+              "fetchFailureReason": null,
+              "fetchMeta": null,
+              "isInvalidated": false,
+              "status": "success",
+              "fetchStatus": "idle"
+            },
+            "queryKey": [
+              "cms-storage",
+              "regions-lobby-links",
+              "{}"
+            ],
+            "queryHash": "[\"cms-storage\",\"regions-lobby-links\",\"{}\"]"
+          },
+          {
+            "state": {
+              "data": {
+                "key": "regions-lobby-main-text",
+                "value": "[{\"subCategory\":\"forsale\",\"pageTitle\":\"המקום המוביל לחיפוש נדל״ן בישראל\",\"pageSubTitle\":\"איפה תרצו לחפש?\",\"footerTitle\":\"הצטרפו למיליוני מחפשי דירות ונכסים בישראל\",\"regionsDescription\":{\"centerAndSharon\":\"מרווח, נגיש, וצומח - בין השרון לרחובות\",\"south\":\"ערים צומחות והזדמנויות אמיתיות בדרום\",\"telAvivArea\":\"כל האפשרויות, תל אביב וסביבת המטרופולין\",\"east\":\"קהילה חזקה, אוויר פתוח, יישובים עם אופי\",\"coastalNorth\":\"עירוניות שוקקת על קו החוף, מחדרה עד נהריה\",\"jerusalemArea\":\"אופי ירושלמי וקצב חיים קהילתי\",\"northAndValleys\":\"מרחבים וטבע ליד הבית, מהגולן ועד העמקים\"}},{\"subCategory\":\"rent\",\"pageTitle\":\"המקום המוביל לחיפוש דירות להשכרה בישראל\",\"pageSubTitle\":\"איפה תרצו לחפש?\",\"footerTitle\":\"הצטרפו למיליוני מחפשי דירות ונכסים בישראל\",\"regionsDescription\":{\"centerAndSharon\":\"בין השרון לרחובות - מרווח, נגיש, וצומח\",\"south\":\"ערים צומחות והזדמנויות אמיתיות בדרום\",\"telAvivArea\":\"כל האפשרויות - תל אביב וסביבת המטרופולין\",\"east\":\"קהילה חזקה, אוויר פתוח, יישובים עם אופי\",\"coastalNorth\":\"עירוניות שוקקת על קו החוף - מחדרה עד נהריה\",\"jerusalemArea\":\"אופי ירושלמי וקצב חיים קהילתי\",\"northAndValleys\":\"מרחבים וטבע ליד הבית, מהגולן ועד העמקים\"}},{\"subCategory\":\"commercial\",\"pageTitle\":\"המקום המוביל לחיפוש נדל״ן מסחרי בישראל\",\"pageSubTitle\":\"איפה תרצו לחפש?\",\"footerTitle\":\"הצטרפו למיליוני מחפשי דירות ונכסים בישראל\",\"regionsDescription\":{\"centerAndSharon\":\"בין השרון לרחובות - מרווח, נגיש, וצומח\",\"south\":\"ערים צומחות והזדמנויות אמיתיות בדרום\",\"telAvivArea\":\"כל האפשרויות - תל אביב וסביבת המטרופולין\",\"east\":\"קהילה חזקה, אוויר פתוח, יישובים עם אופי\",\"coastalNorth\":\"עירוניות שוקקת על קו החוף - מחדרה עד נהריה\",\"jerusalemArea\":\"אופי ירושלמי וקצב חיים קהילתי\",\"northAndValleys\":\"מרחבים וטבע ליד הבית, מהגולן ועד העמקים\"}},{\"subCategory\":\"yad1\",\"pageTitle\":\"המקום המוביל לחיפוש פרויקטים ודירות חדשות בישראל\",\"pageSubTitle\":\"איפה תרצו לחפש?\",\"footerTitle\":\"הצטרפו למיליוני מחפשי פרויקטים חדשים בישראל\",\"regionsDescription\":{\"centerAndSharon\":\"בין השרון לרחובות - מרווח, נגיש, וצומח\",\"south\":\"ערים צומחות והזדמנויות אמיתיות בדרום\",\"telAvivArea\":\"כל האפשרויות - תל אביב וסביבת המטרופולין\",\"east\":\"קהילה חזקה, אוויר פתוח, יישובים עם אופי\",\"coastalNorth\":\"עירוניות שוקקת על קו החוף - מחדרה עד נהריה\",\"jerusalemArea\":\"אופי ירושלמי וקצב חיים קהילתי\",\"northAndValleys\":\"מרחבים וטבע ליד הבית, מהגולן ועד העמקים\"}}]",
+                "version": 38,
+                "createdAt": "2026-02-04T13:16:39.703Z",
+                "updatedAt": "2026-02-04T13:16:39.703Z",
+                "otherVersions": [
+                  {
+                    "version": 37,
+                    "createdAt": "2026-02-04T13:12:44.345Z",
+                    "updatedAt": "2026-02-04T13:16:39.764Z"
+                  },
+                  {
+                    "version": 36,
+                    "createdAt": "2026-02-04T07:31:02.834Z",
+                    "updatedAt": "2026-02-04T13:16:39.764Z"
+                  },
+                  {
+                    "version": 35,
+                    "createdAt": "2026-02-03T13:54:21.907Z",
+                    "updatedAt": "2026-02-04T13:16:39.764Z"
+                  },
+                  {
+                    "version": 34,
+                    "createdAt": "2026-01-25T20:54:09.049Z",
+                    "updatedAt": "2026-02-04T13:16:39.764Z"
+                  }
+                ]
+              },
+              "dataUpdateCount": 1,
+              "dataUpdatedAt": 1772057826845,
+              "error": null,
+              "errorUpdateCount": 0,
+              "errorUpdatedAt": 0,
+              "fetchFailureCount": 0,
+              "fetchFailureReason": null,
+              "fetchMeta": null,
+              "isInvalidated": false,
+              "status": "success",
+              "fetchStatus": "idle"
+            },
+            "queryKey": [
+              "cms-storage",
+              "regions-lobby-main-text",
+              "{}"
+            ],
+            "queryHash": "[\"cms-storage\",\"regions-lobby-main-text\",\"{}\"]"
+          },
+          {
+            "state": {
+              "data": {
+                "regions": [
+                  {
+                    "id": 1,
+                    "text": "מרכז והשרון",
+                    "count": 7872
+                  },
+                  {
+                    "id": 3,
+                    "text": "תל אביב והסביבה",
+                    "count": 7616
+                  },
+                  {
+                    "id": 5,
+                    "text": "מישור החוף הצפוני",
+                    "count": 5118
+                  },
+                  {
+                    "id": 2,
+                    "text": "דרום",
+                    "count": 4047
+                  },
+                  {
+                    "id": 7,
+                    "text": "צפון והעמקים",
+                    "count": 2721
+                  },
+                  {
+                    "id": 6,
+                    "text": "ירושלים והסביבה",
+                    "count": 1403
+                  },
+                  {
+                    "id": 4,
+                    "text": "יהודה, שומרון ובקעת הירדן",
+                    "count": 713
+                  },
+                  {
+                    "id": 8,
+                    "text": "ירושלים",
+                    "count": 373
+                  }
+                ]
+              },
+              "dataUpdateCount": 1,
+              "dataUpdatedAt": 1772057826951,
+              "error": null,
+              "errorUpdateCount": 0,
+              "errorUpdatedAt": 0,
+              "fetchFailureCount": 0,
+              "fetchFailureReason": null,
+              "fetchMeta": null,
+              "isInvalidated": false,
+              "status": "success",
+              "fetchStatus": "idle"
+            },
+            "queryKey": [
+              "realestate-rent-lobby",
+              {}
+            ],
+            "queryHash": "[\"realestate-rent-lobby\",{}]"
+          }
+        ]
+      },
+      "lobbyData": {
+        "regionLinkDataMap": {
+          "1": {
+            "total": 7872,
+            "url": "/rent/center-and-sharon",
+            "title": "מרכז והשרון",
+            "regionId": 1,
+            "description": "בין השרון לרחובות - מרווח, נגיש, וצומח"
+          },
+          "2": {
+            "total": 4047,
+            "url": "/rent/south",
+            "title": "דרום",
+            "regionId": 2,
+            "description": "ערים צומחות והזדמנויות אמיתיות בדרום"
+          },
+          "3": {
+            "total": 7616,
+            "url": "/rent/tel-aviv-area",
+            "title": "תל אביב והסביבה",
+            "regionId": 3,
+            "description": "כל האפשרויות - תל אביב וסביבת המטרופולין"
+          },
+          "4": {
+            "total": 713,
+            "url": "/rent/partnership/east",
+            "title": "יהודה, שומרון ובקעת הירדן",
+            "regionId": 4,
+            "description": "קהילה חזקה, אוויר פתוח, יישובים עם אופי"
+          },
+          "5": {
+            "total": 5118,
+            "url": "/rent/coastal-north",
+            "title": "מישור החוף הצפוני",
+            "regionId": 5,
+            "description": "עירוניות שוקקת על קו החוף - מחדרה עד נהריה"
+          },
+          "6": {
+            "total": 1403,
+            "url": "/rent/jerusalem-area",
+            "title": "ירושלים והסביבה",
+            "regionId": 6,
+            "description": "אופי ירושלמי וקצב חיים קהילתי"
+          },
+          "7": {
+            "total": 2721,
+            "url": "/rent/north-and-valleys",
+            "title": "צפון והעמקים",
+            "regionId": 7,
+            "description": "מרחבים וטבע ליד הבית, מהגולן ועד העמקים"
+          }
+        },
+        "cardsTitle": "איפה תרצו לחפש?",
+        "recommendationsTitle": "הצטרפו למיליוני מחפשי דירות ונכסים בישראל",
+        "recommendationLinks": [
+          {
+            "title": "יד2 מרכז והשרון",
+            "url": "/rent/center-and-sharon",
+            "links": [
+              {
+                "text": "דירות במרכז והשרון",
+                "url": "https://www.yad2.co.il/realestate/rent/center-and-sharon?property=1"
+              },
+              {
+                "text": "דירות גן במרכז והשרון",
+                "url": "https://www.yad2.co.il/realestate/rent/center-and-sharon?property=3"
+              },
+              {
+                "text": "פנטהאוזים במרכז והשרון",
+                "url": "https://www.yad2.co.il/realestate/rent/center-and-sharon?property=6"
+              },
+              {
+                "text": "דופלקסים במרכז והשרון",
+                "url": "https://www.yad2.co.il/realestate/rent/center-and-sharon?property=7"
+              },
+              {
+                "text": "יחידות דיור במרכז והשרון",
+                "url": "https://www.yad2.co.il/realestate/rent/center-and-sharon?property=11"
+              }
+            ]
+          },
+          {
+            "title": "יד2 תל אביב והסביבה",
+            "url": "/rent/tel-aviv-area",
+            "links": [
+              {
+                "text": "דירות בתל אביב והסביבה",
+                "url": "https://www.yad2.co.il/realestate/rent/tel-aviv-area?property=1"
+              },
+              {
+                "text": "דירות גן בתל אביב והסביבה",
+                "url": "https://www.yad2.co.il/realestate/rent/tel-aviv-area?property=3"
+              },
+              {
+                "text": "פנטהאוזים בתל אביב והסביבה",
+                "url": "https://www.yad2.co.il/realestate/rent/tel-aviv-area?property=6"
+              },
+              {
+                "text": "דופלקסים בתל אביב והסביבה",
+                "url": "https://www.yad2.co.il/realestate/rent/tel-aviv-area?property=7"
+              },
+              {
+                "text": "יחידות דיור בתל אביב והסביבה",
+                "url": "https://www.yad2.co.il/realestate/rent/tel-aviv-area?property=11"
+              }
+            ]
+          },
+          {
+            "title": "יד2 ירושלים והסביבה",
+            "url": "/rent/jerusalem-area",
+            "links": [
+              {
+                "text": "דירות בירושלים והסביבה",
+                "url": "https://www.yad2.co.il/realestate/rent/jerusalem-area?property=1"
+              },
+              {
+                "text": "דירות גן בירושלים והסביבה",
+                "url": "https://www.yad2.co.il/realestate/rent/jerusalem-area?property=3"
+              },
+              {
+                "text": "פנטהאוזים בירושלים והסביבה",
+                "url": "https://www.yad2.co.il/realestate/rent/jerusalem-area?property=6"
+              },
+              {
+                "text": "דופלקסים בירושלים והסביבה",
+                "url": "https://www.yad2.co.il/realestate/rent/jerusalem-area?property=7"
+              },
+              {
+                "text": "יחידות דיור בירושלים והסביבה",
+                "url": "https://www.yad2.co.il/realestate/rent/jerusalem-area?property=11"
+              }
+            ]
+          },
+          {
+            "title": "יד2 דרום",
+            "url": "/rent/south",
+            "links": [
+              {
+                "text": "דירות בדרום",
+                "url": "https://www.yad2.co.il/realestate/rent/south?property=1"
+              },
+              {
+                "text": "דירות גן בדרום",
+                "url": "https://www.yad2.co.il/realestate/rent/south?property=3"
+              },
+              {
+                "text": "פנטהאוזים בדרום",
+                "url": "https://www.yad2.co.il/realestate/rent/south?property=6"
+              },
+              {
+                "text": "דופלקסים בדרום",
+                "url": "https://www.yad2.co.il/realestate/rent/south?property=7"
+              },
+              {
+                "text": "יחידות דיור בדרום",
+                "url": "https://www.yad2.co.il/realestate/rent/south?property=11"
+              }
+            ]
+          },
+          {
+            "title": "יד2 מישור החוף הצפוני",
+            "url": "/rent/coastal-north",
+            "links": [
+              {
+                "text": "דירות במישור החוף הצפוני",
+                "url": "https://www.yad2.co.il/realestate/rent/coastal-north?property=1"
+              },
+              {
+                "text": "דירות גן במישור החוף הצפוני",
+                "url": "https://www.yad2.co.il/realestate/rent/coastal-north?property=3"
+              },
+              {
+                "text": "פנטהאוזים במישור החוף הצפוני",
+                "url": "https://www.yad2.co.il/realestate/rent/coastal-north?property=6"
+              },
+              {
+                "text": "דופלקסים במישור החוף הצפוני",
+                "url": "https://www.yad2.co.il/realestate/rent/coastal-north?property=7"
+              },
+              {
+                "text": "יחידות דיור במישור החוף הצפוני",
+                "url": "https://www.yad2.co.il/realestate/rent/coastal-north?property=11"
+              }
+            ]
+          },
+          {
+            "title": "יד2 צפון והעמקים",
+            "url": "/rent/north-and-valleys",
+            "links": [
+              {
+                "text": "דירות בצפון והעמקים",
+                "url": "https://www.yad2.co.il/realestate/rent/north-and-valleys?property=1"
+              },
+              {
+                "text": "דירות גן בצפון והעמקים",
+                "url": "https://www.yad2.co.il/realestate/rent/north-and-valleys?property=3"
+              },
+              {
+                "text": "פנטהאוזים בצפון והעמקים",
+                "url": "https://www.yad2.co.il/realestate/rent/north-and-valleys?property=6"
+              },
+              {
+                "text": "דופלקסים בצפון והעמקים",
+                "url": "https://www.yad2.co.il/realestate/rent/north-and-valleys?property=7"
+              },
+              {
+                "text": "יחידות דיור בצפון והעמקים",
+                "url": "https://www.yad2.co.il/realestate/rent/north-and-valleys?property=11"
+              }
+            ]
+          },
+          {
+            "title": "יד2 יהודה, שומרון ובקעת הירדן",
+            "url": "/rent/partnership/east",
+            "links": [
+              {
+                "text": "דירות ביהודה, שומרון ובקעת הירדן",
+                "url": "https://www.yad2.co.il/realestate/rent/partnership/east?property=1"
+              },
+              {
+                "text": "דירות גן ביהודה, שומרון ובקעת הירדן",
+                "url": "https://www.yad2.co.il/realestate/rent/partnership/east?property=3"
+              },
+              {
+                "text": "פנטהאוזים ביהודה, שומרון ובקעת הירדן",
+                "url": "https://www.yad2.co.il/realestate/rent/partnership/east?property=6"
+              },
+              {
+                "text": "דופלקסים ביהודה, שומרון ובקעת הירדן",
+                "url": "https://www.yad2.co.il/realestate/rent/partnership/east?property=7"
+              },
+              {
+                "text": "יחידות דיור ביהודה, שומרון ובקעת הירדן",
+                "url": "https://www.yad2.co.il/realestate/rent/partnership/east?property=11"
+              }
+            ]
+          }
+        ]
+      },
+      "feedLiteralData": {},
+      "feed": {
+        "pagination": {
+          "total": 0,
+          "totalPages": 0
+        }
+      },
+      "isAiSearchEnabled": false
+    },
+    "isAiSearchEnabled": false,
+    "__N_SSP": true
+  },
+  "page": "/rent",
+  "query": {},
+  "buildId": "b4nKSFim876vQ6r91XlwV",
+  "assetPrefix": "/realestate",
+  "isFallback": false,
+  "isExperimentalCompile": false,
+  "gssp": true,
+  "appGip": true,
+  "scriptLoader": []
+}

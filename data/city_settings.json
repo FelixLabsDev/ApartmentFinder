@@ -1,0 +1,65 @@
+[
+  {
+    "id": "d8ccd7dc-58db-4c4e-98bf-d23dc8296d41",
+    "name": "Holon",
+    "region": "tel-aviv-area",
+    "areaCode": "11",
+    "cityCode": "6600",
+    "neighborhoodName": "",
+    "neighborhoodCode": ""
+  },
+  {
+    "id": "3b1454f7-74f4-4e57-ab64-97b4079a0ad6",
+    "name": "Rishon",
+    "region": "center-and-sharon",
+    "areaCode": "9",
+    "cityCode": "8300",
+    "neighborhoodName": "",
+    "neighborhoodCode": ""
+  },
+  {
+    "id": "14364429-6477-4e8d-ac34-5f455c18697e",
+    "name": "Bat Yam",
+    "region": "tel-aviv-area",
+    "areaCode": "11",
+    "cityCode": "6200",
+    "neighborhoodName": "",
+    "neighborhoodCode": ""
+  },
+  {
+    "id": "5ec1ddd3-a551-42d7-99eb-2706d219e50d",
+    "name": "Lod - Ganei Aviv",
+    "region": "center-and-sharon",
+    "areaCode": "51",
+    "cityCode": "7000",
+    "neighborhoodName": "",
+    "neighborhoodCode": "1252"
+  },
+  {
+    "id": "0c128d6e-11cf-4872-8b95-093a5bc5d2d3",
+    "name": "Lod - International",
+    "region": "center-and-sharon",
+    "areaCode": "51",
+    "cityCode": "7000",
+    "neighborhoodName": "International area",
+    "neighborhoodCode": "241207"
+  },
+  {
+    "id": "ddf2bb5d-589a-4f48-acb9-cd688dc2efe9",
+    "name": "Lod - North ganei aviv",
+    "region": "center-and-sharon",
+    "areaCode": "51",
+    "cityCode": "7000",
+    "neighborhoodName": "",
+    "neighborhoodCode": "230201"
+  },
+  {
+    "id": "b3786804-13ba-480f-bf5a-f0cfce0c8628",
+    "name": "Tel-Aviv all",
+    "region": "tel-aviv-area",
+    "areaCode": "1",
+    "cityCode": "5000",
+    "neighborhoodName": "",
+    "neighborhoodCode": ""
+  }
+]

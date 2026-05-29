@@ -5,7 +5,7 @@ export default defineConfig({
   timeout: 30_000,
   retries: 0,
   use: {
-    baseURL: "http://localhost:5173",
+    baseURL: "http://localhost:3000",
     headless: true,
     screenshot: "only-on-failure",
   },
@@ -18,7 +18,7 @@ export default defineConfig({
     },
     {
       command: "npm run dev",
-      port: 5173,
+      port: 3000,
       timeout: 15_000,
       reuseExistingServer: true,
     },

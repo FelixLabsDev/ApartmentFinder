@@ -1,6 +1,6 @@
 [project]
 name = "apartmentfinder"
-version = "0.1.0"
+version = "1.1.2"
 description = "Aggregates apartment rental listings from Yad2 and Facebook Marketplace"
 requires-python = ">=3.11"
 dependencies = [

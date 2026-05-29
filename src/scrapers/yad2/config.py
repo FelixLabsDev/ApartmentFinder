@@ -12,6 +12,13 @@ ANTIBOT_MARKER = "Are you for real"
 # Listing detail URL template
 LISTING_URL_TEMPLATE = "https://www.yad2.co.il/realestate/item/{token}"
 
+# Per-item API endpoints tried in order to fetch full-resolution images
+# The feed API only returns preview-sized images; the detail page gallery loads different URLs
+ITEM_API_URLS = [
+    "https://gw.yad2.co.il/realestate-feed/item/{token}",
+    "https://www.yad2.co.il/api/pre-load/getAdditionalInfo/{token}",
+]
+
 # Hebrew -> PropertyType mapping
 PROPERTY_TYPE_MAP: dict[str, str] = {
     "דירה": "apartment",

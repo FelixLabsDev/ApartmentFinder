@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import logging
 
 from src.models.filters import SearchFilter
@@ -7,7 +8,7 @@ from src.models.listing import ListingCreate
 from src.scrapers.base import BaseScraper
 from src.scrapers.http_client import ScraperHttpClient
 
-from .config import CITY_CODES, FEED_API_URL, PROPERTY_TYPE_CODES
+from .config import CITY_CODES, FEED_API_URL, ITEM_API_URLS, PROPERTY_TYPE_CODES
 from .parser import Yad2Parser
 
 logger = logging.getLogger(__name__)
@@ -116,6 +117,11 @@ class Yad2ApiScraper(BaseScraper):
             await self._client.random_delay()
 
         logger.info("Yad2 API: scraped %d listings across %d pages", len(all_listings), page)
+
+        # Enrich listings with full-resolution images from the per-item API
+        enricher = Yad2ImageEnricher(self._client)
+        all_listings = await enricher.enrich(all_listings)
+
         return all_listings
 
     async def health_check(self) -> bool:
@@ -192,3 +198,135 @@ class Yad2ApiScraper(BaseScraper):
                 params["property"] = ",".join(type_codes)
 
         return params
+
+
+class Yad2ImageEnricher:
+    """Enriches listings with full-resolution images and real descriptions from the per-item API.
+
+    The feed API only returns thumbnail-sized images and a search-index blob
+    (`search_text`) instead of the actual seller description.  The per-item
+    endpoints return the real gallery URLs and the free-text description.
+    """
+
+    # Delay between per-item requests to avoid bot detection
+    _REQUEST_DELAY = 0.4
+
+    def __init__(self, http_client: ScraperHttpClient | None = None):
+        self._client = http_client or ScraperHttpClient()
+
+    async def enrich(self, listings: list[ListingCreate]) -> list[ListingCreate]:
+        """Fetch full-size images and real description for each listing in-place."""
+        image_count = 0
+        desc_count = 0
+        for i, listing in enumerate(listings):
+            images, description = await self._fetch_item_data(listing.source_id)
+            if images:
+                listing.image_urls = images
+                image_count += 1
+            # Only overwrite description when a real one is found — the feed's
+            # search_text is a search-index blob, not a seller-written description
+            if description:
+                listing.description = description
+                desc_count += 1
+            # Rate-limit between requests; skip delay on last item
+            if i < len(listings) - 1:
+                await asyncio.sleep(self._REQUEST_DELAY)
+
+        logger.info(
+            "Yad2 enrichment: %d/%d listings got full-res images, %d/%d got real descriptions",
+            image_count, len(listings), desc_count, len(listings),
+        )
+        return listings
+
+    async def _fetch_item_data(self, token: str) -> tuple[list[str], str | None]:
+        """Try each per-item API endpoint; return (image_urls, description) from first success."""
+        for url_template in ITEM_API_URLS:
+            url = url_template.format(token=token)
+            try:
+                response = await self._client.get(
+                    url,
+                    headers={
+                        "Accept": "application/json, text/plain, */*",
+                        "Referer": f"https://www.yad2.co.il/realestate/item/{token}",
+                        "Origin": "https://www.yad2.co.il",
+                        "Sec-Fetch-Dest": "empty",
+                        "Sec-Fetch-Mode": "cors",
+                        "Sec-Fetch-Site": "same-origin",
+                    },
+                    max_retries=1,
+                )
+                data = response.json()
+                images = self._extract_images(data)
+                description = self._extract_description(data)
+                if images or description:
+                    logger.debug(
+                        "Yad2 item %s: %d images, description=%s from %s",
+                        token, len(images), bool(description), url,
+                    )
+                    return images, description
+            except Exception as exc:
+                logger.debug("Yad2 item API %s failed for %s: %s", url_template, token, exc)
+
+        return [], None
+
+    @staticmethod
+    def _extract_images(data: dict) -> list[str]:
+        """Extract image URL strings from various possible per-item API response shapes."""
+        def _urls_from_list(items: list) -> list[str]:
+            urls = []
+            for item in items:
+                if isinstance(item, str) and item.startswith("http"):
+                    urls.append(item)
+                elif isinstance(item, dict):
+                    url = item.get("url") or item.get("src") or item.get("uri") or ""
+                    if url:
+                        urls.append(url)
+            return urls
+
+        # Try top-level image fields directly
+        for field in ("images_urls", "images", "gallery", "photos"):
+            items = data.get(field) or []
+            if isinstance(items, list) and items:
+                urls = _urls_from_list(items)
+                if urls:
+                    return urls
+
+        # Try one level of nesting under common wrapper keys
+        for wrapper in ("data", "item", "ad"):
+            nested = data.get(wrapper)
+            if isinstance(nested, dict):
+                for field in ("images_urls", "images", "gallery", "photos"):
+                    items = nested.get(field) or []
+                    if isinstance(items, list) and items:
+                        urls = _urls_from_list(items)
+                        if urls:
+                            return urls
+
+        return []
+
+    @staticmethod
+    def _extract_description(data: dict) -> str | None:
+        """Extract the seller-written description from a per-item API response.
+
+        Yad2's per-item API may use any of several field names for the description
+        across different endpoint versions; tries the most common ones in order.
+        """
+        # Candidate field names for the free-text description
+        desc_fields = ("info_text", "description", "text", "body", "details")
+
+        # Check top-level fields first
+        for field in desc_fields:
+            value = data.get(field)
+            if isinstance(value, str) and value.strip():
+                return value.strip()
+
+        # Check one level of nesting under common wrapper keys
+        for wrapper in ("data", "item", "ad"):
+            nested = data.get(wrapper)
+            if isinstance(nested, dict):
+                for field in desc_fields:
+                    value = nested.get(field)
+                    if isinstance(value, str) and value.strip():
+                        return value.strip()
+
+        return None

@@ -9,6 +9,7 @@ import type { Filters, Listing } from "../api";
 import type { Folder } from "../hooks/useFolders";
 import type { CityConfig } from "../hooks/useCitySettings";
 import type { FacebookCityConfig } from "../hooks/useFacebookCities";
+import type { Tag } from "../hooks/useListingTags";
 
 type SidebarTab = "scrape" | "filters" | "folders" | "saved";
 
@@ -22,8 +23,13 @@ const tabs: { id: SidebarTab; icon: string; label: string }[] = [
 export function Sidebar({
   filters,
   setFilters,
-  showLikedOnly,
-  onToggleLikedOnly,
+  minRatingFilter,
+  onSetMinRatingFilter,
+  hiddenRatings,
+  onSetHiddenRatings,
+  hiddenTagIds,
+  onSetHiddenTagIds,
+  tags,
   folders,
   activeFolder,
   onSetActiveFolder,
@@ -48,8 +54,13 @@ export function Sidebar({
 }: {
   filters: Filters;
   setFilters: (f: Filters) => void;
-  showLikedOnly: boolean;
-  onToggleLikedOnly: () => void;
+  minRatingFilter: number;
+  onSetMinRatingFilter: (n: number) => void;
+  hiddenRatings: string[];
+  onSetHiddenRatings: (v: string[]) => void;
+  hiddenTagIds: string[];
+  onSetHiddenTagIds: (v: string[]) => void;
+  tags: Tag[];
   folders: Folder[];
   activeFolder: string | null;
   onSetActiveFolder: (id: string | null) => void;
@@ -122,8 +133,13 @@ export function Sidebar({
             <DisplayFilters
               filters={filters}
               setFilters={setFilters}
-              showLikedOnly={showLikedOnly}
-              onToggleLikedOnly={onToggleLikedOnly}
+              minRatingFilter={minRatingFilter}
+              onSetMinRatingFilter={onSetMinRatingFilter}
+              hiddenRatings={hiddenRatings}
+              onSetHiddenRatings={onSetHiddenRatings}
+              hiddenTagIds={hiddenTagIds}
+              onSetHiddenTagIds={onSetHiddenTagIds}
+              tags={tags}
               cityConfigs={cityConfigs}
             />
           </div>

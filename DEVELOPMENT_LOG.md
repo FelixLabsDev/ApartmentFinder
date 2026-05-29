@@ -1,8 +1,685 @@
 # ApartmentFinder — Development Log & Technical Documentation
 
-> **Last Updated**: 2026-03-08
-> **Status**: All phases complete (Steps 1–27). Full system operational with Yad2 + Facebook Marketplace + Madlan.
+> **Last Updated**: 2026-05-29
+> **Status**: All phases complete (Steps 1–32). Full system operational with Yad2 + Facebook Marketplace + Madlan. Tag management, priority sort, and liked-first ordering available in the listings grid. Entire listing card is clickable to open detail modal. Global free-text search across all listing fields. Filter/sort/view state persisted across sessions via localStorage. Lightbox event propagation and Escape key handling fixed in detail modal. Optional WhatsApp integration per listing via Green API. Flexible hide-by-status/tag filtering in sidebar. Prev/Next navigation in listing detail modal. Balcony feature tag now reliably detected from numeric Yad2 field and additional Madlan field aliases. Listing update detection with UPDATED badge and auto-inserted system notes. WhatsApp toggle button overlap with sidebar fixed.
 > **Test suite**: 194 tests (193 unit + 1 integration).
+
+---
+
+## Session 33: Vite Dev Port — Windows Hyper-V Exclusion (2026-05-29)
+
+**Version bumped**: `1.1.1 → 1.1.2` (pyproject.toml) | `0.1.1 → 0.1.2` (frontend/package.json)
+
+### What Changed
+
+**Motivation**: `npm run dev` failed with `EACCES: permission denied 0.0.0.0:5173` on Windows. Port 5173 falls inside Hyper-V’s excluded TCP range (5146–5245).
+
+**Files modified**:
+
+| File | Change |
+|------|--------|
+| `frontend/vite.config.ts` | Dev server port `5173` → `3000` |
+| `frontend/playwright.config.ts` | E2E `baseURL` and webServer port updated to 3000 |
+| `README.md`, `frontend/README.md`, `ARCHITECTURE.md` | URLs updated to port 3000 |
+
+---
+
+## Session 32: WhatsApp Toggle Button Overlap Fix (2026-05-18)
+
+**Version bumped**: `1.1.0 → 1.1.1` (pyproject.toml) | `0.1.0 → 0.1.1` (frontend/package.json)
+
+### What Changed
+
+**Motivation**: The WhatsApp toggle button (`whatsapp-toggle-btn`) was absolutely positioned at `left: 12px` and remained visible when the WhatsApp sidebar opened, overlapping and blocking sidebar content.
+
+**Files modified**:
+
+| File | Change |
+|------|--------|
+| `frontend/src/components/ListingDetailModal.tsx` | Toggle button now only renders when sidebar is closed (`{!whatsappOpen && <button ...>}`). Added a close button (`whatsapp-sidebar-close-btn`) inside `whatsapp-sidebar-header`, wrapped in a new `whatsapp-header-top` flex row alongside the title. |
+| `frontend/src/App.css` | Added `.whatsapp-header-top` (flex row for title + close button) and `.whatsapp-sidebar-close-btn` styles. |
+
+### Failed Approaches
+
+None — fix was straightforward once root cause was identified.
+
+---
+
+## Session 31: Listing Update Detection & UPDATED Badge (2026-05-13)
+
+**Version bumped**: `1.0.1 → 1.1.0`
+
+### What Changed
+
+**Motivation**: When a listing was re-scraped with changed content (price drop, new photos, updated description), the change was silently overwritten in the DB and the user had no way to know the listing had changed since they last viewed it.
+
+**Files modified**:
+
+| File | Change |
+|------|--------|
+| `src/db/tables.py` | Added `content_updated_at: Mapped[datetime | None]` nullable column to `ListingRow`. |
+| `src/db/repository.py` | Rewrote `upsert_listings` to return a `(total, new_count, updated_count)` 3-tuple. Now refreshes all scraped fields on re-scrape (previously only updated price/title/description/images). Added `_detect_changes` static method to compare incoming vs stored field values. When changes are detected: sets `content_updated_at` to now; auto-inserts a `NoteRow` into `listing_notes` with a human-readable summary (e.g. `[Update] Price: ₪5,000 → ₪4,800 | 2 new photo(s) added`). User state fields (`rating`, folders, tags, notes, `seen_at`, `whatsapp_phone`) are never overwritten. |
+| `src/ui/api.py` | Added startup migration that adds the `content_updated_at` column if absent. Added `content_updated_at` field to `ListingResponse`. Added `updated_listings: int` to `ScrapeResponse`. Updated all `upsert_listings` call sites to unpack the 3-tuple return value. |
+| `frontend/src/api.ts` | Added `content_updated_at: string | null` to the `Listing` interface. Added `updated_listings: number` to `ScrapeResult`. |
+| `frontend/src/App.tsx` | Added `isUpdated` callback alongside `isUnseen` (checks `content_updated_at` is set and listing not yet seen). Passes `isUpdated` prop to `ListingCard`. Calls `markListingSeen` for updated listings in addition to new ones (clearing the badge on open). |
+| `frontend/src/components/ListingCard.tsx` | Added `isUpdated` prop. Applies `listing-updated` CSS class when true. Renders a purple `UPDATED` badge span in the image overlay (same position and mechanism as the orange `NEW` badge). |
+| `frontend/src/App.css` | Added `.listing-updated` (purple border, consistent with orange `.listing-unseen` pattern) and `.updated-badge` (purple pill badge, positioned identically to `.new-badge`). |
+| `frontend/src/components/ScrapePanel.tsx` | Alerts and totals updated to include `updated_listings` count (e.g. "3 new, 2 updated"). |
+| `pyproject.toml` | Version bumped `1.0.1 → 1.1.0`. |
+
+### Architecture Notes
+
+- `_detect_changes` compares scalar fields (price, rooms, floor, area, description, features) and image arrays; returns a human-readable diff string or `None` if nothing changed.
+- The UPDATED badge is cleared the same way as the NEW badge: opening the listing calls `markListingSeen`, which sets `seen_at` on the backend. The `isUpdated` predicate checks `content_updated_at IS NOT NULL AND seen_at IS NULL`.
+- System notes are inserted as regular `NoteRow` records with a `[Update]` prefix — they appear in the listing's notes panel in `ListingDetailModal` alongside user-written notes.
+- User-facing state (rating, tags, folders, WhatsApp phone, manual notes, `seen_at`) is always preserved across re-scrapes.
+
+### Failed Approaches
+
+None — design was planned upfront and implemented in a single pass.
+
+---
+
+## Session 30: Balcony Feature Tag Fix — Yad2 & Madlan Parsers (2026-05-13)
+
+**Version**: `1.0.1` (patch, alongside Session 29)
+
+### What Changed
+
+**Motivation**: The balcony (מרפסת) tag was not appearing in listing feature chips despite Parking, Elevator, and A/C working correctly. Investigation revealed that Yad2 sometimes returns balcony data as a numeric count in a bare `"Porch"` field rather than the string `"Porch_text"` field the parser exclusively checked; Madlan used only a narrow set of field name aliases.
+
+**Root cause**: `_parse_features` in the Yad2 parser only read `<Feature>_text` fields. If the API returned `"Porch": 1` (numeric) without a corresponding `"Porch_text"` value, `has_balcony` stayed `null` and no tag appeared. The UI rendering of the Balcony tag was always correct — this was purely a data-extraction gap.
+
+**Files modified**:
+
+| File | Change |
+|------|--------|
+| `src/scrapers/yad2/parser.py` | `_parse_features` now falls back to the bare numeric field (e.g. `"Porch"`) when the `_text` variant is absent or empty. Applies universally to all feature flags (parking, elevator, balcony, A/C, etc.). |
+| `src/scrapers/madlan/parser.py` | Extended `has_balcony` field-name aliases to include `"porches"`, `"porch"`, `"balconyArea"`, and `"porchArea"`. |
+| `pyproject.toml` | Version set to `1.0.1`. |
+
+### Architecture Notes
+
+- The `_text` field (e.g. `"Porch_text"`) is still preferred; the numeric fallback is only used when the text field is falsy — zero-count (i.e. no balcony) is correctly handled because `0` is falsy.
+- The same fallback pattern now covers all feature flags in `_parse_features`, making the extraction more resilient to future Yad2 API field format variations.
+
+### Failed Approaches
+
+None — the root cause was identified directly from field inspection of the Yad2 API response.
+
+---
+
+## Session 29: Prev/Next Navigation in Listing Detail Modal (2026-05-13)
+
+**Version bumped**: `1.0.0 → 1.0.1`
+
+### What Changed
+
+**Motivation**: Users had to close the detail modal and click the next card to browse listings sequentially. Adding in-modal navigation improves review flow, especially when triaging many listings.
+
+**Files modified**:
+
+| File | Change |
+|------|--------|
+| `frontend/src/components/ListingDetailModal.tsx` | Added optional `onPrev` / `onNext` props; added `.modal-listing-nav-row` navigation row at the bottom of modal content with "← Previous" (left) and "Next →" (right) buttons; buttons are disabled when at the first/last listing. |
+| `frontend/src/App.tsx` | Added `selectedListingIdx` `useMemo` computed from `displayListings`; extracted `openListing(idx)` helper that opens the modal and marks the listing as seen; passes `onPrev` / `onNext` to `ListingDetailModal`; refactored map-view listing selection to use `openListing`. |
+| `frontend/src/App.css` | Added `.modal-listing-nav-row` (flex row, space-between) and `.modal-listing-nav-btn` styles. |
+| `pyproject.toml` | Version bumped `1.0.0 → 1.0.1`. |
+
+### Architecture Notes
+
+- `selectedListingIdx` is derived from `displayListings` so it always respects all active filters and sort order — navigating Prev/Next steps through the filtered+sorted view only.
+- `openListing(idx)` centralises modal-open logic (set selected listing + mark seen), replacing two separate call sites that previously did this inline.
+- Navigating to a new listing via Prev/Next automatically marks it as seen (same behaviour as clicking a card).
+
+### Failed Approaches
+
+None — single-pass implementation.
+
+---
+
+## Session 28: Hide by Status/Tag Filtering (2026-05-13)
+
+**Version bumped**: `0.9.5 → 1.0.0`
+
+### What Changed
+
+**Motivation**: The single "Hide Hard Nos" toolbar checkbox only hid the lowest rating tier. Users needed finer control to hide any combination of rating levels and/or tag-labeled listings without deleting them.
+
+**Files modified**:
+
+| File | Change |
+|------|--------|
+| `frontend/src/App.tsx` | Replaced `hideHardNos` boolean (`af_hide_hard_nos`) with `hiddenRatings` string-array (`af_hidden_ratings`, default `["1"]`) and `hiddenTagIds` string-array (`af_hidden_tag_ids`, default `[]`). Updated `displayListings` filter logic. Removed toolbar checkbox. Passed new props to Sidebar. |
+| `frontend/src/components/Sidebar.tsx` | Added `hiddenRatings`, `onSetHiddenRatings`, `hiddenTagIds`, `onSetHiddenTagIds`, `tags` props; threads them to DisplayFilters. |
+| `frontend/src/components/DisplayFilters.tsx` | Added "Hide by Status" section (checkbox per rating tier 1–5) and "Hide by Tag" section (checkbox per user-created tag). |
+| `frontend/src/App.css` | Added `.tag-chip-mini` style for the color dot rendered inside tag checkboxes. |
+| `pyproject.toml` | Version bumped `0.9.5 → 1.0.0`. |
+
+### Architecture Notes
+
+- `af_hidden_ratings` defaults to `["1"]`, preserving the old "Hide Hard Nos by default" behavior.
+- `af_hidden_tag_ids` defaults to `[]`.
+- Both states are persisted via `usePersistedState`.
+- The full `tags` list is threaded from App → Sidebar → DisplayFilters so the "Hide by Tag" section reflects the user's current tag set dynamically.
+
+### Failed Approaches
+
+None — single-pass implementation extending the existing filter panel.
+
+---
+
+## Session 27: CORS Open for LAN Access (2026-05-12)
+
+**Version bumped**: `0.9.4 → 0.9.5`
+
+### What Changed
+
+**Motivation**: The previous CORS whitelist (`http://localhost:*`) blocked requests from other devices on the same LAN (phones, tablets, other machines), which broke the LAN access mode introduced in v2.9.
+
+**Files modified**:
+
+| File | Change |
+|------|--------|
+| `src/ui/api.py` | `allow_origins` changed from a localhost whitelist to `["*"]`; `allow_credentials` explicitly set to `False`. |
+| `pyproject.toml` | Version bumped `0.9.4 → 0.9.5`. |
+
+### Failed Approaches
+
+None — single-line fix.
+
+---
+
+## Session 26: 5-Tier Quality Rating System (2026-05-12)
+
+**Version bumped**: `0.8.4 → 0.9.4` (backend), `0.0.0 → 0.1.0` (frontend)
+
+### What Changed
+
+**Motivation**: The binary thumbs-up/thumbs-down rating was too coarse for users to effectively prioritize and filter listings. A 5-tier system provides finer-grained ranking and more useful filtering options.
+
+**Rating tiers**:
+
+| Level | Label | Color |
+|-------|-------|-------|
+| 1 | Hard No | Red |
+| 2 | Not Interested | Orange |
+| 3 | Maybe | Yellow |
+| 4 | Interested | Light green |
+| 5 | Perfect Match | Green |
+
+**Files modified**:
+
+| File | Change |
+|------|--------|
+| `frontend/src/hooks/useListingRatings.ts` | `Rating` type changed from `"liked"\|"disliked"` to `"1"\|"2"\|"3"\|"4"\|"5"`. Exported `RATING_LEVELS` constant (array of tier metadata: label, color, symbol). `toggleLike`/`toggleDislike` replaced by single `setRating(id, level)`. Auto-migrates legacy localStorage values (`"liked"`→`"4"`, `"disliked"`→`"1"`) on startup. |
+| `frontend/src/components/ListingCard.tsx` | Thumbs buttons replaced with a row of 5 color-coded symbol buttons. Card border tinted per tier (red for level 1 through green for level 5). |
+| `frontend/src/components/ListingDetailModal.tsx` | Same 5-button rating row as `ListingCard`. |
+| `frontend/src/components/DisplayFilters.tsx` | "Liked Only" checkbox replaced with "Min Rating" dropdown (`"1"`–`"5"` or none). |
+| `frontend/src/App.tsx` | Toolbar "Hide disliked" renamed to "Hide Hard Nos" (hides level 1). Priority sort "Liked First" renamed to "Rated First". Persisted state keys updated: `af_show_liked_only`→`af_min_rating`, `af_hide_disliked`→`af_hide_hard_nos`, `af_prioritize_liked`→`af_prioritize_rated`. Compare view button shown when any listing is rated 4 or 5. |
+| `src/ui/api.py` | Rating endpoints now accept `"1"`–`"5"` instead of `"liked"`/`"disliked"`. |
+| `src/db/repository.py` | `set_rating` stores string `"1"`–`"5"`. Legacy DB values auto-migrated on read: `"liked"`→`"4"`, `"disliked"`→`"1"`. |
+| `pyproject.toml` | Version bumped `0.8.4 → 0.9.4`. |
+| `frontend/package.json` | Version bumped `0.0.0 → 0.1.0`. |
+
+### Architecture Notes
+
+- Legacy `"liked"` / `"disliked"` values in both DB and localStorage are migrated automatically on first access — no manual migration step required.
+- `RATING_LEVELS` is the single source of truth for tier metadata (label, color, symbol) — UI components import it rather than hardcoding per-tier values.
+- The Compare view threshold moved from "has a like" to "rated 4 or 5" to preserve equivalent user intent semantics.
+- Priority sort tier ordering now uses numeric rating level directly (higher = better tier) instead of the old liked/neutral/disliked 3-bucket scheme.
+
+### Failed Approaches
+
+None — single-pass implementation replacing the binary system end-to-end.
+
+---
+
+## Session 26b: Rating Badge + Popover UI Rework (2026-05-12)
+
+**Version**: still `0.9.4` (UI-only follow-up to the tier rating system, same session)
+
+### What Changed
+
+**Motivation**: The 5 inline rating buttons placed in the card header made the layout crowded. Replaced them with a compact badge+popover pattern that takes up far less horizontal space.
+
+**Files modified**:
+
+| File | Change |
+|------|--------|
+| `frontend/src/components/RatingBadge.tsx` | **New shared component.** Renders a single colored pill (`.rating-badge`) showing the active tier label, or "★ Rate" when unrated. Clicking opens a popover (`.rating-popover`) with one item per tier, color-coded; the active tier is highlighted. Clicking the active tier again clears the rating. Accepts a `large` boolean prop for slightly bigger sizing (used in the detail modal). |
+| `frontend/src/components/ListingCard.tsx` | Replaced the 5 inline `.tier-btn-N` buttons with `<RatingBadge>`. |
+| `frontend/src/components/ListingDetailModal.tsx` | Replaced the 5 inline buttons with `<RatingBadge large>`. |
+| `frontend/src/App.css` | Removed `.rating-btns` / `.tier-btn-N` CSS. Added `.rating-badge-wrap`, `.rating-badge`, `.rating-badge-N` (per-tier color variants), `.rating-popover`, `.rating-popover-item`, `.tier-color-N`. |
+
+### Architecture Notes
+
+- `RatingBadge` is the single place that renders a rating control; `ListingCard` and `ListingDetailModal` both import it instead of duplicating button markup.
+- The `large` prop only adjusts sizing via CSS; all behaviour is identical between card and modal usage.
+
+### Failed Approaches
+
+None — straightforward extraction to a shared component.
+
+---
+
+## Session 25: WhatsApp Integration via Green API (2026-05-10)
+
+**Version bumped**: `0.7.4 → 0.8.4`
+
+### What Changed
+
+**Motivation**: Users needed a way to message landlords directly from within the app, and to view conversation history without switching to their phone. Integrating WhatsApp (via the Green API service) allows attaching a phone number to any listing and sending/receiving messages from the detail modal.
+
+**Files modified**:
+
+| File | Change |
+|------|--------|
+| `src/db/tables.py` | Added `whatsapp_phone` VARCHAR column to `ListingRow`. |
+| `src/config.py` | Added `green_api_instance_id` and `green_api_token` settings (loaded from env). |
+| `src/db/repository.py` | Added `get_listing(source, source_id)` method; added `set_whatsapp_phone(listing_id, phone)` method to `ListingRepository`. |
+| `src/ui/api.py` | Added startup migration to add `whatsapp_phone` column if absent. Added 4 new endpoints: `PUT /api/listings/{id}/whatsapp-phone`, `DELETE /api/listings/{id}/whatsapp-phone`, `GET /api/listings/{id}/whatsapp/history`, `POST /api/listings/{id}/whatsapp/send`. Updated `ListingResponse` to include `whatsapp_phone`. Updated `_row_to_response` to map the new field. |
+| `frontend/src/api.ts` | Added `WhatsappMessage` interface; added `setWhatsappPhone`, `deleteWhatsappPhone`, `getWhatsappHistory`, `sendWhatsappMessage` API functions. |
+| `frontend/src/components/ListingDetailModal.tsx` | Added WhatsApp panel: a chat-bubble button toggles a panel where the user enters/saves a phone number, views chat history (auto-refreshed on modal open), and sends messages. |
+| `frontend/src/App.css` | Added styles for `.whatsapp-panel`, `.whatsapp-phone-row`, `.whatsapp-messages`, `.whatsapp-input-row`, and the chat-bubble toggle button. |
+| `.env.example` | Added `GREEN_API_INSTANCE_ID` and `GREEN_API_TOKEN` variables. |
+
+### Architecture Notes
+
+- The `whatsapp_phone` column is added at API startup via a `ALTER TABLE ... ADD COLUMN` guard (checks `PRAGMA table_info` first) — no Alembic migration required.
+- Green API credentials (`GREEN_API_INSTANCE_ID`, `GREEN_API_TOKEN`) are optional — the WhatsApp panel is available in the UI regardless, but API calls will fail if credentials are absent.
+- Phone numbers are stored as plain strings; the UI prompts the user to include the country code (e.g. `972501234567`).
+- Chat history is fetched on every modal open and is not cached client-side.
+- The feature is per-listing: any listing can have an independent `whatsapp_phone` association.
+
+### Failed Approaches
+
+None — first-pass implementation.
+
+---
+
+## Session 24: Lightbox Event Propagation Bug Fix (2026-05-08)
+
+**Version bumped**: `0.7.3 → 0.7.4`
+
+### What Changed
+
+**Motivation**: Two related bugs in `ListingDetailModal.tsx` — clicking the lightbox X button or overlay closed the entire listing modal, and pressing Escape while the lightbox was open also closed the modal instead of just the lightbox.
+
+**Files modified**:
+
+| File | Change |
+|------|--------|
+| `frontend/src/components/ListingDetailModal.tsx` | Added `e.stopPropagation()` to lightbox overlay and close button click handlers to prevent event bubbling. Updated Escape key handler to close lightbox first if open, and only close the modal if the lightbox is already closed. |
+| `pyproject.toml` | Version bumped `0.7.3 → 0.7.4` |
+
+### Root Cause
+
+The lightbox overlay was rendered inside the modal overlay `div`. Click events on the lightbox overlay and close button bubbled up to the modal overlay, triggering `onClose`.
+
+### Failed Approaches
+
+None — `stopPropagation` and layered Escape key logic resolved both issues directly.
+
+---
+
+## Session 23: Persisted UI Filter/Sort State (2026-05-08)
+
+**Version bumped**: `0.7.2 → 0.7.3`
+
+### What Changed
+
+**Motivation**: Filter settings, view mode, and sort preferences were reset to defaults on every page reload. Users had to re-apply their preferred filters each session.
+
+**Files modified**:
+
+| File | Change |
+|------|--------|
+| `frontend/src/hooks/usePersistedState.ts` | New hook — drop-in replacement for `useState` that serializes state to `localStorage` on every update and restores it on mount. Generic over `T`; accepts a key and initial value. |
+| `frontend/src/App.tsx` | Switched six state variables in `Dashboard` from `useState` to `usePersistedState` with dedicated keys: `af_filters` (full `Filters` object), `af_show_liked_only`, `af_view_mode`, `af_hide_disliked`, `af_prioritize_liked`, `af_tag_priority_ids`. |
+| `pyproject.toml` | Version bumped `0.7.2 → 0.7.3` |
+
+### State Persistence Decisions
+
+**Persisted** (stable preferences): `af_filters`, `af_show_liked_only`, `af_view_mode`, `af_hide_disliked`, `af_prioritize_liked`, `af_tag_priority_ids`.
+
+**Not persisted** (transient session state): `activeFolder`, `searchInput`, `offset`, `showCompare`, `selectedListing`.
+
+### Failed Approaches
+
+None — straightforward wrapper hook around `useState` + `localStorage`.
+
+---
+
+## Session 22: Priority Sort Panel (2026-05-08)
+
+**Version bumped**: `0.6.3 → 0.7.0`
+
+### What Changed
+
+**Motivation**: Users needed a way to surface preferred listings without manually scanning the entire grid. A "Priority Sort" panel lets users pin liked listings to the top and promote listings matching specific tags.
+
+**Files modified**:
+
+| File | Change |
+|------|--------|
+| `frontend/src/App.tsx` | Added `PriorityPanel` floating panel component. State: `likedFirst` (default `true`), `priorityTags` (ordered list). Sort logic: tier by like/dislike (0/1/2), then within tier by index of first matching priority tag (unmatched sorts last). Toolbar button shows badge count of active rules. |
+| `frontend/src/App.css` | Styles for `.priority-panel`, `.priority-tag-row`, `.priority-badge`, and toolbar button layout for the panel toggle. |
+| `pyproject.toml` | Version bumped `0.6.3 → 0.7.0` |
+
+### Sort Logic
+
+1. Liked listings → tier 0, neutral → tier 1, disliked → tier 2.
+2. Within each tier, listings are sorted by the lowest index of any matching tag in the user's priority list (unmatched listings sort to the end of their tier).
+
+### Failed Approaches
+
+None — new standalone feature with no backend changes required.
+
+---
+
+## Session 21: Yad2 Description Enrichment (2026-05-08)
+
+**Version bumped**: `0.6.1 → 0.6.2`
+
+### What Changed
+
+**Motivation**: The `description` field on Yad2 listings was being populated from the feed API's `search_text` field, which is a search-index blob rather than the seller-written listing description. The per-item API call already made for image enrichment returns the real description; extracting it from there costs no additional HTTP requests.
+
+**Files modified**:
+
+| File | Change |
+|------|--------|
+| `src/scrapers/yad2/scraper.py` | `_fetch_item_images` renamed to `_fetch_item_data`; now returns a `(images, description)` tuple. `enrich()` sets `listing.description` from the per-item response when a non-empty description is found, overwriting the feed's `search_text`. New `_extract_description()` static method probes `info_text`, `description`, `text`, `body`, `details` at the top level and under wrapper keys `data`, `item`, `ad`. |
+| `pyproject.toml` | Version bumped `0.6.1 → 0.6.2` |
+
+### Failed Approaches
+
+None — single-pass implementation extending the existing per-item API call.
+
+---
+
+## Session 20: Bug Fix — Dropdown Clipping on Listing Cards (2026-05-08)
+
+**Version bumped**: `0.6.0 → 0.6.1`
+
+### What Changed
+
+**Motivation**: Tag and folder dropdowns on listing cards were being clipped by the card's `overflow: hidden`, making them unusable.
+
+**Files modified**:
+
+| File | Change |
+|------|--------|
+| `frontend/src/App.css` | Removed `overflow: hidden` from `.listing-card` (set to `overflow: visible`) so dropdowns can escape the card boundary. Added `overflow: hidden` + `border-radius: 12px 12px 0 0` to `.card-image-wrapper` to preserve image corner rounding. Bumped `z-index` on `.tag-dropdown` and `.folder-dropdown` from 100 → 500 so they float above adjacent cards. |
+| `pyproject.toml` | Version bumped `0.6.0 → 0.6.1` |
+
+---
+
+## Session 19b: Global Listing Search (2026-05-08)
+
+**Version bumped**: `0.5.0 → 0.6.0`
+
+### What Changed
+
+**Motivation**: Users had no way to find a specific listing by URL, contact info, or address fragments. Adding a free-text search bar lets users filter the visible listing grid across all text fields in a single query.
+
+**Files modified**:
+
+| File | Change |
+|------|--------|
+| `src/models/filters.py` | Added `search_query: str | None = None` field to `SearchFilter`. |
+| `src/db/repository.py` | `_apply_filter()` now applies `search_query` as an OR ILIKE match across `source_url`, `title`, `description`, `street`, `neighborhood`, `city`, `contact_name`, `contact_phone`. |
+| `src/ui/api.py` | Added `search_query: str | None = None` query parameter to `GET /api/listings`; passed through to `SearchFilter`. |
+| `frontend/src/api.ts` | Added `search_query?: string` to the `Filters` interface and forwarded it as a query param in `fetchListings`. |
+| `frontend/src/App.tsx` | Added a debounced search bar (400ms) to the toolbar. Input state drives the `search_query` filter on the listings fetch. |
+| `pyproject.toml` | Version bumped `0.5.0 → 0.6.0` |
+
+### Architecture Notes
+
+- The OR match is applied at the SQLAlchemy layer using `ilike` conditions chained with `or_()`, keeping the filter logic consistent with the rest of `_apply_filter`.
+- Debouncing at 400ms prevents excessive API calls while typing; the search fires once the user pauses.
+- The search covers all fields a user might know about a listing: direct URL, location details, and contact info.
+
+### Failed Approaches
+
+None — single-pass implementation.
+
+---
+
+## Session 19: Bug Fixes — Ratings, Migration Safety, Key Format (2026-05-08)
+
+**Version bumped**: `0.4.4 → 0.5.0`
+
+### What Changed
+
+**Motivation**: Three independent bugs were identified and fixed: listing ratings were delayed on load (race with a separate API call), failed rating migrations could silently wipe localStorage, and URL-imported listings used the wrong key separator causing folder/tag associations to never resolve. A DB-level repair migration was also added to fix previously persisted bad keys.
+
+**Files modified**:
+
+| File | Change |
+|------|--------|
+| `frontend/src/hooks/useListingRatings.ts` | Added `seedFromListings()`: on every listing fetch the hook now pre-populates ratings from `listing.rating` already present in the response, so ratings appear immediately without waiting for `GET /api/ratings`. The separate `fetchAllRatings()` call is kept to cover paginated off-screen listings not yet in the rendered set. |
+| `frontend/src/hooks/useListingRatings.ts` | Fixed migration code: localStorage rating keys are now only cleared and migration marked done *after* a successful `bulkImportRatings` API call. Previously the cleanup ran even when the API call failed, permanently losing the data. |
+| `frontend/src/components/ScrapePanel.tsx` | `ScrapeUrlSection` was building listing keys as `source:source_id` (colon) when adding a URL-imported listing to a folder. Fixed to use `source-source_id` (hyphen), matching the rest of the system. |
+| `src/db/repository.py` | Added `fix_colon_keys()` to both `FolderRepository` and `TagRepository`. Each method scans `listing_ids` JSON columns for colon-separated keys and rewrites them with the correct hyphen format. |
+| `src/ui/api.py` | Added calls to `FolderRepository.fix_colon_keys()` and `TagRepository.fix_colon_keys()` inside the FastAPI `lifespan` startup handler, so any existing bad keys in the DB are repaired automatically on server start. |
+| `pyproject.toml` | Version bumped `0.4.4 → 0.5.0` |
+
+### Architecture Notes
+
+- **Ratings single source of truth**: The DB is authoritative for rating values. Listing objects fetched from the API carry their `rating` field directly. The frontend now seeds ratings immediately from this data (via `seedFromListings()`) and then supplements with a full `GET /api/ratings` fetch to cover listings not yet rendered.
+- **Listing key format**: The canonical key format throughout the system is `source-source_id` (hyphen). This convention must be used everywhere a listing is referenced by key (folders, tags, localStorage).
+- **One-time startup repair**: `fix_colon_keys()` is idempotent and safe to run on every startup — it only touches rows that actually contain colon-format keys.
+
+### Failed Approaches
+
+None — all four fixes were targeted single-pass changes.
+
+---
+
+## Session 18: Detail Modal Two-Column Layout (2026-05-08)
+
+### What Changed
+
+**Motivation**: The modal body was a single vertical stack (tags → folders → listing details), which wasted horizontal space and buried the listing info below organizer controls.
+
+**Files modified**:
+
+| File | Change |
+|------|--------|
+| `frontend/src/components/ListingDetailModal.tsx` | Modal body restructured from a single vertical stack to a two-column horizontal layout. Left column: info grid, features, description, contact. Right column: tags stacked above folders. |
+| `frontend/src/App.css` | Added `.modal-body-split` (flex row container), `.modal-body-details` (left column, flex-grow), `.modal-body-organizers` (right column, fixed width) to support the split layout. |
+| `pyproject.toml` | Version bumped `0.4.3 → 0.4.4` |
+
+### Failed Approaches
+
+None — straightforward CSS flex restructure.
+
+---
+
+## Session 17: Clickable Card UX Improvement (2026-05-07)
+
+### What Changed
+
+**Motivation**: Only specific elements (image, title, description) opened the detail modal on a listing card. Clicking whitespace on the card did nothing, which felt inconsistent.
+
+**Files modified**:
+
+| File | Change |
+|------|--------|
+| `frontend/src/components/ListingCard.tsx` | `onClick` moved to the root card `div` so the entire card opens the detail modal. Removed redundant `onClick` handlers from image, title `h3`, and description `p`. Carousel nav buttons, contact area, Maps link, and View Listing link now call `e.stopPropagation()`. View Listing link no longer calls `onOpenDetail()`. |
+| `pyproject.toml` | Version bumped `0.4.2 → 0.4.3` |
+
+### Failed Approaches
+
+None — straightforward event delegation refactor.
+
+---
+
+## Session 16: Tags in Listing Detail Modal (2026-05-07)
+
+### What Changed
+
+**Motivation**: Tag management was only available on grid cards. Users viewing a listing in the detail modal had no way to add, remove, or create tags without closing it.
+
+**Files modified**:
+
+| File | Change |
+|------|--------|
+| `frontend/src/components/ListingDetailModal.tsx` | Added tag UI — removable chips for current tags, dropdown to add existing tags, color swatch picker + name input to create new tags. Props added: `allTags`, `listingTags`, `onAddToTag`, `onRemoveFromTag`, `onCreateTag`. |
+| `frontend/src/App.tsx` | Modal invocation wired with all five tag props, mirroring `ListingCard` usage. |
+| `frontend/src/App.css` | Added styles: `.modal-tags`, `.modal-tags-chips`, `.modal-tags-select`, `.modal-tags-create`. |
+| `pyproject.toml` | Version bumped `0.4.1 → 0.4.2` |
+
+### Failed Approaches
+
+None — additive change mirroring existing ListingCard pattern.
+
+---
+
+## Session 15: Tag Creation Bug Fix & Color Picker (2026-05-07)
+
+### What Changed
+
+**Motivation**: Tag creation had a race condition — `addToTag` (listing-tag association write) was called before `createTagApi` resolved, so the tag row didn't exist in the DB yet and the write failed silently. Additionally, users had no way to choose a tag color during creation; colors were auto-assigned from a palette.
+
+**Files modified**:
+
+| File | Change |
+|------|--------|
+| `frontend/src/hooks/useListingTags.ts` | `createTag` made `async`; now `await`s `createTagApi` before calling `addToTag`. `onCreateTag` callback signature updated from `(name: string)` to `(name: string, color: string)`. |
+| `frontend/src/components/ListingCard.tsx` | Tag creation form now renders a row of 8 colored swatches; selected color previewed next to the name input. `onCreateTag` prop signature updated to pass color. |
+| `frontend/src/App.tsx` | `onCreateTag` handler updated to accept and forward `color` argument. |
+| `pyproject.toml` | Version bumped `0.4.0 → 0.4.1` |
+
+### Failed Approaches
+
+None — targeted fix, single pass.
+
+---
+
+## Session 14: Listing Tags Feature (2026-05-07)
+
+### What Changed
+
+**Motivation**: Users had no way to organize or annotate listings beyond the implicit like/dislike status. A custom tagging system lets users label any listing with named, colored tags for personal organization (e.g., "favorites", "visited", "too small").
+
+**Files modified/added**:
+
+| File | Change |
+|------|--------|
+| `src/db/tables.py` | Added `TagRow` SQLAlchemy model with fields: `id` (UUID PK), `name` (VARCHAR), `color` (VARCHAR), `listing_ids` (JSON array), `created_at` (DATETIME). |
+| `src/db/repository.py` | Added `TagRepository` class with `get_all`, `create`, `rename`, `delete`, `add_listing`, `remove_listing` methods. |
+| `src/ui/api.py` | Added 6 new REST endpoints: `GET /api/tags`, `POST /api/tags`, `PUT /api/tags/{id}/name`, `DELETE /api/tags/{id}`, `POST /api/tags/{id}/listings`, `DELETE /api/tags/{id}/listings/{listing_id}`. Tags table auto-created via startup migration in `lifespan`. |
+| `frontend/src/api.ts` | Added `Tag` interface and API functions: `fetchTags`, `createTagApi`, `renameTagApi`, `deleteTagApi`, `addListingToTagApi`, `removeFromTagApi`. |
+| `frontend/src/hooks/useListingTags.ts` | New `useListingTags` hook: fetches all tags, exposes add/remove/create/rename/delete mutations, auto-assigns colors from a cycling palette. |
+| `frontend/src/components/ListingCard.tsx` | Tag chips rendered to the right of the card title. A 🏷 button opens a dropdown to assign/unassign existing tags or create new ones inline. |
+| `frontend/src/App.tsx` | Wired `useListingTags` hook at top level; tag props passed down to each `ListingCard`. |
+| `frontend/src/App.css` | Added styles for `.card-title-row`, `.card-tags-area`, `.tag-chip`, `.tag-add-btn`, `.tag-dropdown`, and related elements. |
+| `pyproject.toml` | Version bumped `0.3.2 → 0.4.0` |
+
+### Architecture Notes
+
+- Tags are stored in a separate `tags` table; each row's `listing_ids` JSON column holds the array of listing UUIDs that have been assigned that tag. This keeps the `listings` table schema unchanged.
+- The `tags` table is created at API startup via `TagRow.metadata.create_all()` in the FastAPI `lifespan` context — no Alembic migration required for this table.
+- Color assignment is handled entirely on the frontend; the backend stores whatever color string is sent.
+
+### Failed Approaches
+
+None — single-pass implementation.
+
+---
+
+## Session 13: Maps Button on Listing Cards (2026-05-07)
+
+### What Changed
+
+**Motivation**: Users viewing listings in the grid had to open the detail modal to reach the Google Maps link. Adding a "Maps" button directly on each card allows faster location lookup without an extra click.
+
+**Files modified**:
+
+| File | Change |
+|------|--------|
+| `frontend/src/components/ListingCard.tsx` | Added a green "Maps" `<a>` button next to "View Listing". Uses `https://www.google.com/maps?q={lat},{lng}` when coordinates are available; falls back to a `https://www.google.com/maps/search/` query built from street + city. Only rendered when the listing has lat/lng or at least both street and city. |
+| `frontend/src/App.css` | Added `.btn-maps` styles (green). |
+| `pyproject.toml` | Version bumped `0.3.1 → 0.3.2` |
+
+### Failed Approaches
+
+None — single-pass implementation.
+
+---
+
+## Session 12: LAN / Phone Access (2026-05-07)
+
+### What Changed
+
+**Motivation**: The app was only accessible from the machine running it (`localhost`). Users on the same local network (e.g., on a phone or another PC) couldn't open the React UI or reach the API. Making both servers bind on `0.0.0.0` allows LAN access without any tunnelling or port-forwarding.
+
+**Files modified**:
+
+| File | Change |
+|------|--------|
+| `frontend/vite.config.ts` | Added `server: { host: true, port: 5173 }` — Vite dev server now listens on all network interfaces, not just `127.0.0.1` |
+| `frontend/src/api.ts` | Changed `API_BASE` from `"http://localhost:8080"` to `"http://${window.location.hostname}:8080"` — API calls now use the same hostname the browser used to reach the UI, so phone access works automatically |
+| `README.md` | Added `--host 0.0.0.0` to the uvicorn run command; noted the LAN access URL pattern (`http://<host-ip>:5173`) |
+| `pyproject.toml` | Version bumped `0.3.0 → 0.3.1` |
+
+### Architecture Notes
+
+- `window.location.hostname` resolves to the host IP when accessed from a phone, so no manual IP configuration is needed on the client side.
+- The Vite `host: true` option is equivalent to `--host 0.0.0.0` on the CLI — it binds the HMR websocket and static asset server on all interfaces.
+- Both servers (FastAPI on 8080, Vite on 5173) must be started with their respective `0.0.0.0` bindings for end-to-end LAN access to work.
+
+### Failed Approaches
+
+None — the change is minimal and the dynamic hostname approach is the canonical solution for this pattern.
+
+---
+
+## Session 11: Manual Facebook Marketplace URL Import (2026-05-05)
+
+### What Changed
+
+**Motivation**: Users had no way to import a specific Facebook Marketplace listing by URL directly from the UI — only the Telegram bot supported single-link ingestion. Adding a URL input in the Facebook scrape tab lets users paste any Marketplace link and have it scraped, AI-extracted, and stored without leaving the app.
+
+**Files modified**:
+
+| File | Change |
+|------|--------|
+| `src/ui/api.py` | Added `POST /api/scrape/url` endpoint + `ScrapeUrlRequest` / `ScrapeUrlResponse` models |
+| `frontend/src/api.ts` | Added `ScrapeUrlResult` interface and `scrapeListingUrl()` function |
+| `frontend/src/components/ScrapePanel.tsx` | Added `ScrapeUrlSection` component; rendered at top of the Facebook tab |
+| `pyproject.toml` | Version bumped `0.2.0 → 0.3.0` |
+
+### Architecture Notes
+
+- The new endpoint reuses the exact same pipeline as the Telegram bot: `scrape_fb_listing` → `extract_listing_fields` → `ListingCreate` → `normalize_batch` → `upsert_listings`. Source is set to `facebook` (not `telegram`) since the link comes directly from the UI.
+- The frontend section sits above the bulk "Scrape Facebook" form so it's immediately visible on tab open.
+
+---
+
+## Session 10: Full-Size Listing Image Fetching (2026-05-05)
+
+### What Changed
+
+**Motivation**: All sources were storing preview/thumbnail-sized images instead of the full-resolution images visible when opening a listing directly. The Yad2 feed API only returns CDN preview URLs; the full-size images are loaded by the gallery modal on the detail page. Facebook Playwright was reading `img.src` (browser-rendered size). Madlan DOM fallback was ignoring the `data-src` lazy-load attribute.
+
+**Files modified**:
+
+| File | Change |
+|------|--------|
+| `src/scrapers/yad2/config.py` | Added `ITEM_API_URLS` — two candidate per-item API endpoint templates |
+| `src/scrapers/yad2/scraper.py` | Added `Yad2ImageEnricher` class; called from `Yad2ApiScraper.scrape()` after feed collection |
+| `src/scrapers/facebook/scraper.py` | `_enrich_from_detail_page` now intercepts network responses (`page.on("response", ...)`) to collect actual full-res CDN URLs; DOM `img.src` approach kept as fallback |
+| `src/scrapers/madlan/scraper.py` | Card image extraction prefers `data-src` over `src` |
+| `pyproject.toml` | Version bumped `0.1.0 → 0.2.0` |
+
+### Architecture Notes
+
+- `Yad2ImageEnricher` is a separate class from `Yad2ApiScraper` to keep the feed-pagination logic clean. It runs after the feed scrape, makes one rate-limited HTTP GET per listing token to the per-item API, and replaces `image_urls` in-place. Gracefully falls back to feed-API preview URLs on any per-item call failure.
+- Facebook response interception registers a `response` event listener before `page.goto()` and removes it in a `finally` block. It captures `scontent`/`fbcdn` URLs with `content-type: image/*`. Falls back to the previous DOM approach if interception yields nothing.
 
 ---
 

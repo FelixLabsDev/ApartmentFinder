@@ -380,9 +380,9 @@ class MadlanPlaywrightScraper(BaseScraper):
                     text_content = link.inner_text()
                     lines = [l.strip() for l in text_content.split("\n") if l.strip()]
 
-                    # Extract image
+                    # Extract image; prefer data-src (lazy-load high-res) over src (thumbnail)
                     img = link.query_selector("img")
-                    image_url = img.get_attribute("src") if img else None
+                    image_url = (img.get_attribute("data-src") or img.get_attribute("src")) if img else None
 
                     card_data = self._build_card_from_text(listing_id, lines, image_url)
                     cards.append(card_data)

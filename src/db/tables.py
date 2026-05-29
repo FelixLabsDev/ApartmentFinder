@@ -52,10 +52,15 @@ class ListingRow(Base):
     contact_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
     contact_phone: Mapped[str | None] = mapped_column(String(30), nullable=True)
 
+    # WhatsApp integration: user-assigned phone number for Green API chat
+    whatsapp_phone: Mapped[str | None] = mapped_column(String(30), nullable=True)
+
     # Dates
     entry_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     posted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     updated_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    # Set when a re-scraped listing has field changes detected (not on first insert)
+    content_updated_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     # Geo
     latitude: Mapped[float | None] = mapped_column(Float, nullable=True)
@@ -121,6 +126,16 @@ class FolderRow(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name: Mapped[str] = mapped_column(String(200), nullable=False)
+    listing_ids: Mapped[str] = mapped_column(JSON, default="[]")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class TagRow(Base):
+    __tablename__ = "tags"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    name: Mapped[str] = mapped_column(String(200), nullable=False)
+    color: Mapped[str] = mapped_column(String(20), nullable=False, default="#718096")
     listing_ids: Mapped[str] = mapped_column(JSON, default="[]")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 

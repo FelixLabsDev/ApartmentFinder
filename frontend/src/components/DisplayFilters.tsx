@@ -1,19 +1,31 @@
 import { useQuery } from "@tanstack/react-query";
 import { type Filters, fetchNeighborhoods } from "../api";
 import type { CityConfig } from "../hooks/useCitySettings";
+import { RATING_LEVELS } from "../hooks/useListingRatings";
+import type { Tag } from "../hooks/useListingTags";
 import { MultiSelect } from "./MultiSelect";
 
 export function DisplayFilters({
   filters,
   setFilters,
-  showLikedOnly,
-  onToggleLikedOnly,
+  minRatingFilter,
+  onSetMinRatingFilter,
+  hiddenRatings,
+  onSetHiddenRatings,
+  hiddenTagIds,
+  onSetHiddenTagIds,
+  tags,
   cityConfigs,
 }: {
   filters: Filters;
   setFilters: (f: Filters) => void;
-  showLikedOnly: boolean;
-  onToggleLikedOnly: () => void;
+  minRatingFilter: number;
+  onSetMinRatingFilter: (n: number) => void;
+  hiddenRatings: string[];
+  onSetHiddenRatings: (v: string[]) => void;
+  hiddenTagIds: string[];
+  onSetHiddenTagIds: (v: string[]) => void;
+  tags: Tag[];
   cityConfigs: CityConfig[];
 }) {
   // Parse selected city names from comma-separated filter string
@@ -183,15 +195,67 @@ export function DisplayFilters({
         ))}
       </div>
 
+      {/* Hide by rating level */}
+      <label>Hide by Status</label>
+      <div className="checkbox-group">
+        {RATING_LEVELS.map(({ level, label, symbol }) => (
+          <label key={level} className="checkbox-label">
+            <input
+              type="checkbox"
+              checked={hiddenRatings.includes(level)}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  onSetHiddenRatings([...hiddenRatings, level]);
+                } else {
+                  onSetHiddenRatings(hiddenRatings.filter((r) => r !== level));
+                }
+              }}
+            />
+            <span style={{ marginRight: 4 }}>{symbol}</span>{label}
+          </label>
+        ))}
+      </div>
+
+      {/* Hide by tag */}
+      {tags.length > 0 && (
+        <>
+          <label>Hide by Tag</label>
+          <div className="checkbox-group">
+            {tags.map((tag) => (
+              <label key={tag.id} className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={hiddenTagIds.includes(tag.id)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      onSetHiddenTagIds([...hiddenTagIds, tag.id]);
+                    } else {
+                      onSetHiddenTagIds(hiddenTagIds.filter((id) => id !== tag.id));
+                    }
+                  }}
+                />
+                <span className="tag-chip-mini" style={{ background: tag.color }} />
+                {tag.name}
+              </label>
+            ))}
+          </div>
+        </>
+      )}
+
       <div className="filter-actions">
-        <label className="checkbox-label favorites-toggle">
-          <input
-            type="checkbox"
-            checked={showLikedOnly}
-            onChange={onToggleLikedOnly}
-          />
-          Liked Only
+        <label className="sidebar" style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, color: "#4a5568", margin: "0 0 4px" }}>
+          Min Rating
         </label>
+        <select
+          style={{ width: "100%", padding: "6px 8px", border: "1px solid #e2e8f0", borderRadius: "6px", fontSize: "0.85rem", background: "#fff", marginBottom: "8px" }}
+          value={minRatingFilter}
+          onChange={(e) => onSetMinRatingFilter(parseInt(e.target.value))}
+        >
+          <option value={0}>Show all ratings</option>
+          <option value={3}>Maybe or better (\u2265 3)</option>
+          <option value={4}>Interested or better (\u2265 4)</option>
+          <option value={5}>Perfect Match only (5)</option>
+        </select>
         <label className="checkbox-label inactive-toggle">
           <input
             type="checkbox"

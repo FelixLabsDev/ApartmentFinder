@@ -235,7 +235,7 @@ class MadlanParser:
         feature_map = {
             "has_parking": ["parking", "hasParking", "חניה"],
             "has_elevator": ["elevator", "hasElevator", "מעלית"],
-            "has_balcony": ["balcony", "hasBalcony", "מרפסת"],
+            "has_balcony": ["balcony", "hasBalcony", "מרפסת", "porches", "porch", "balconyArea", "porchArea"],
             "has_air_conditioning": ["airConditioning", "hasAirConditioning", "ac", "מיזוג"],
             "has_mamad": ["mamad", "hasMamad", "safeRoom", "ממ\"ד"],
             "is_accessible": ["accessible", "isAccessible", "נגיש"],

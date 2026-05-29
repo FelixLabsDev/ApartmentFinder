@@ -41,6 +41,10 @@ class Settings(BaseSettings):
     ai_model: str = "gpt-4o-mini"
     openai_api_key: str = ""
 
+    # Green API (WhatsApp integration)
+    green_api_instance_id: str = ""
+    green_api_token: str = ""
+
     # Debug mode
     debug: bool = False
 

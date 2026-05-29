@@ -49,3 +49,4 @@ alembic/versions/__pycache__/
 # Claude Code (local/personal settings and session data)
 .claude/settings.local.json
 .claude/agent-memory/
+**/.claude/agent-memory/

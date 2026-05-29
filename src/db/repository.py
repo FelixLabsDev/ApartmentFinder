@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.models.filters import SearchFilter
 from src.models.listing import ListingCreate
 
-from .tables import FacebookCityRow, FolderRow, ListingRow, NoteRow, ScrapeRunRow, SearchProfileRow
+from .tables import FacebookCityRow, FolderRow, ListingRow, NoteRow, ScrapeRunRow, SearchProfileRow, TagRow
 
 
 class ListingRepository:
@@ -18,9 +18,17 @@ class ListingRepository:
 
     async def upsert_listings(
         self, listings: list[ListingCreate], fingerprints: list[str]
-    ) -> tuple[int, int]:
-        """Insert new or update existing listings. Returns (total, new_count)."""
+    ) -> tuple[int, int, int]:
+        """Insert new or update existing listings. Returns (total, new_count, updated_count).
+
+        For existing listings, all scraped fields are refreshed and any detected
+        content changes are recorded: content_updated_at is set and a system note
+        is auto-inserted describing what changed.
+        """
         new_count = 0
+        updated_count = 0
+        now = datetime.utcnow()
+
         for listing, fingerprint in zip(listings, fingerprints):
             existing = await self._session.execute(
                 select(ListingRow).where(
@@ -34,28 +42,120 @@ class ListingRepository:
                 row = ListingRow(
                     id=str(uuid.uuid4()),
                     fingerprint=fingerprint,
-                    first_seen_at=datetime.utcnow(),
-                    last_seen_at=datetime.utcnow(),
+                    first_seen_at=now,
+                    last_seen_at=now,
                     **listing.model_dump(exclude={"raw_data"}),
                     raw_data=listing.raw_data,
                 )
                 self._session.add(row)
                 new_count += 1
             else:
-                # Update existing listing with fresh data
-                row.last_seen_at = datetime.utcnow()
+                # Detect content changes and build a human-readable changelog
+                changes = self._detect_changes(row, listing)
+
+                # Refresh all scraped fields (user state fields are left untouched)
+                row.last_seen_at = now
                 row.fingerprint = fingerprint
-                row.price = listing.price
+                row.is_active = True
                 row.title = listing.title
+                row.price = listing.price
                 row.description = listing.description
                 row.image_urls = listing.image_urls
                 row.updated_at = listing.updated_at
-                row.is_active = True
+                row.rooms = listing.rooms if listing.rooms is not None else row.rooms
+                row.floor = listing.floor if listing.floor is not None else row.floor
+                row.total_floors = listing.total_floors if listing.total_floors is not None else row.total_floors
+                row.area_sqm = listing.area_sqm if listing.area_sqm is not None else row.area_sqm
+                row.property_type = listing.property_type if listing.property_type is not None else row.property_type
+                row.neighborhood = listing.neighborhood if listing.neighborhood is not None else row.neighborhood
+                row.street = listing.street if listing.street is not None else row.street
+                row.house_number = listing.house_number if listing.house_number is not None else row.house_number
+                row.entry_date = listing.entry_date if listing.entry_date is not None else row.entry_date
+                row.contact_name = listing.contact_name if listing.contact_name is not None else row.contact_name
+                row.contact_phone = listing.contact_phone if listing.contact_phone is not None else row.contact_phone
+                row.latitude = listing.latitude if listing.latitude is not None else row.latitude
+                row.longitude = listing.longitude if listing.longitude is not None else row.longitude
+                # Feature flags: only overwrite when scraper has a definitive value
+                for feat in ("has_parking", "has_elevator", "has_balcony", "has_air_conditioning",
+                             "has_mamad", "is_accessible", "is_furnished", "has_bars",
+                             "has_storage", "pet_friendly"):
+                    new_val = getattr(listing, feat)
+                    if new_val is not None:
+                        setattr(row, feat, new_val)
                 if listing.ai_guessed_fields:
                     row.ai_guessed_fields = listing.ai_guessed_fields
 
+                # Record change timestamp and auto-note when content changed
+                if changes:
+                    row.content_updated_at = now
+                    updated_count += 1
+                    listing_key = f"{listing.source.value}-{listing.source_id}"
+                    note_text = "[Update] " + " | ".join(changes)
+                    self._session.add(NoteRow(
+                        id=str(uuid.uuid4()),
+                        listing_key=listing_key,
+                        text=note_text,
+                        created_at=now,
+                    ))
+
         await self._session.flush()
-        return len(listings), new_count
+        return len(listings), new_count, updated_count
+
+    @staticmethod
+    def _detect_changes(row: ListingRow, listing: ListingCreate) -> list[str]:
+        """Compare a scraped listing against the stored row and return a list of change descriptions."""
+        changes: list[str] = []
+
+        # Price
+        if listing.price is not None and row.price != listing.price:
+            old = f"₪{int(row.price):,}" if row.price else "N/A"
+            new = f"₪{int(listing.price):,}"
+            changes.append(f"Price: {old} → {new}")
+
+        # Photos
+        old_imgs = set(row.image_urls or [])
+        new_imgs = set(listing.image_urls or [])
+        added_photos = len(new_imgs - old_imgs)
+        removed_photos = len(old_imgs - new_imgs)
+        if added_photos:
+            changes.append(f"{added_photos} new photo(s) added")
+        if removed_photos:
+            changes.append(f"{removed_photos} photo(s) removed")
+
+        # Description
+        if listing.description and listing.description != row.description:
+            changes.append("Description updated")
+
+        # Scalar fields with human-readable labels
+        scalar_fields = [
+            ("rooms", "Rooms"), ("floor", "Floor"), ("total_floors", "Total floors"),
+            ("area_sqm", "Area (m²)"), ("property_type", "Type"),
+            ("neighborhood", "Neighborhood"), ("street", "Street"),
+            ("entry_date", "Move-in date"), ("contact_phone", "Contact phone"),
+        ]
+        for field, label in scalar_fields:
+            new_val = getattr(listing, field)
+            old_val = getattr(row, field)
+            if new_val is not None and old_val != new_val:
+                changes.append(f"{label}: {old_val} → {new_val}")
+
+        # Feature flags
+        feature_labels = {
+            "has_parking": "Parking", "has_elevator": "Elevator",
+            "has_balcony": "Balcony", "has_air_conditioning": "A/C",
+            "has_mamad": "Safe room", "is_accessible": "Accessible",
+            "is_furnished": "Furnished", "has_bars": "Bars",
+            "has_storage": "Storage", "pet_friendly": "Pet friendly",
+        }
+        for feat, label in feature_labels.items():
+            new_val = getattr(listing, feat)
+            old_val = getattr(row, feat)
+            if new_val is not None and old_val != new_val:
+                old_str = "Yes" if old_val else ("No" if old_val is False else "Unknown")
+                new_str = "Yes" if new_val else "No"
+                changes.append(f"{label}: {old_str} → {new_str}")
+
+        return changes
 
     _SORT_MAP = {
         "newest": func.coalesce(ListingRow.posted_at, ListingRow.first_seen_at).desc(),
@@ -222,6 +322,22 @@ class ListingRepository:
                 )
             )
 
+        # Global search: matches across URL, title, description, address fields, and contact info
+        if f.search_query:
+            pattern = f"%{f.search_query}%"
+            stmt = stmt.where(
+                or_(
+                    ListingRow.source_url.ilike(pattern),
+                    ListingRow.title.ilike(pattern),
+                    ListingRow.description.ilike(pattern),
+                    ListingRow.street.ilike(pattern),
+                    ListingRow.neighborhood.ilike(pattern),
+                    ListingRow.city.ilike(pattern),
+                    ListingRow.contact_name.ilike(pattern),
+                    ListingRow.contact_phone.ilike(pattern),
+                )
+            )
+
         return stmt
 
     async def set_rating(self, source: str, source_id: str, rating: str | None) -> bool:
@@ -299,6 +415,22 @@ class ListingRepository:
             .order_by(ListingRow.neighborhood)
         )
         return [r[0] for r in result.all()]
+
+    async def get_listing(self, source: str, source_id: str) -> ListingRow | None:
+        """Fetch a single listing by source + source_id."""
+        result = await self._session.execute(
+            select(ListingRow).where(ListingRow.source == source, ListingRow.source_id == source_id)
+        )
+        return result.scalar_one_or_none()
+
+    async def set_whatsapp_phone(self, source: str, source_id: str, phone: str | None) -> ListingRow | None:
+        """Set or clear the WhatsApp phone number on a listing. Returns the updated row or None."""
+        row = await self.get_listing(source, source_id)
+        if row is None:
+            return None
+        row.whatsapp_phone = phone
+        await self._session.flush()
+        return row
 
 
 class SearchProfileRepository:
@@ -446,6 +578,20 @@ class FolderRepository:
         await self._session.flush()
         return True
 
+    async def fix_colon_keys(self) -> int:
+        """Migrate any listing keys stored as 'source:id' to the correct 'source-id' format.
+        Returns the number of folder rows that were updated."""
+        rows = await self.get_all()
+        updated = 0
+        for row in rows:
+            original = list(row.listing_ids or [])
+            fixed = [lid.replace(":", "-", 1) if ":" in lid else lid for lid in original]
+            if fixed != original:
+                row.listing_ids = fixed
+                updated += 1
+        await self._session.flush()
+        return updated
+
 
 class NoteRepository:
     def __init__(self, session: AsyncSession):
@@ -506,6 +652,75 @@ class NoteRepository:
                 count += 1
         await self._session.flush()
         return count
+
+
+class TagRepository:
+    def __init__(self, session: AsyncSession):
+        self._session = session
+
+    async def get_all(self) -> list[TagRow]:
+        result = await self._session.execute(select(TagRow).order_by(TagRow.created_at))
+        return list(result.scalars().all())
+
+    async def create(self, name: str, color: str, tag_id: str | None = None, listing_ids: list[str] | None = None) -> TagRow:
+        row = TagRow(
+            id=tag_id or str(uuid.uuid4()),
+            name=name,
+            color=color,
+            listing_ids=listing_ids or [],
+            created_at=datetime.utcnow(),
+        )
+        self._session.add(row)
+        await self._session.flush()
+        return row
+
+    async def rename(self, tag_id: str, new_name: str) -> bool:
+        result = await self._session.execute(select(TagRow).where(TagRow.id == tag_id))
+        row = result.scalar_one_or_none()
+        if not row:
+            return False
+        row.name = new_name
+        await self._session.flush()
+        return True
+
+    async def delete(self, tag_id: str) -> bool:
+        result = await self._session.execute(delete(TagRow).where(TagRow.id == tag_id))
+        await self._session.flush()
+        return result.rowcount > 0
+
+    async def add_listing(self, tag_id: str, listing_id: str) -> bool:
+        result = await self._session.execute(select(TagRow).where(TagRow.id == tag_id))
+        row = result.scalar_one_or_none()
+        if not row:
+            return False
+        existing = set(row.listing_ids or [])
+        if listing_id not in existing:
+            row.listing_ids = list(existing) + [listing_id]
+        await self._session.flush()
+        return True
+
+    async def remove_listing(self, tag_id: str, listing_id: str) -> bool:
+        result = await self._session.execute(select(TagRow).where(TagRow.id == tag_id))
+        row = result.scalar_one_or_none()
+        if not row:
+            return False
+        row.listing_ids = [lid for lid in (row.listing_ids or []) if lid != listing_id]
+        await self._session.flush()
+        return True
+
+    async def fix_colon_keys(self) -> int:
+        """Migrate any listing keys stored as 'source:id' to the correct 'source-id' format.
+        Returns the number of tag rows that were updated."""
+        rows = await self.get_all()
+        updated = 0
+        for row in rows:
+            original = list(row.listing_ids or [])
+            fixed = [lid.replace(":", "-", 1) if ":" in lid else lid for lid in original]
+            if fixed != original:
+                row.listing_ids = fixed
+                updated += 1
+        await self._session.flush()
+        return updated
 
 
 class FacebookCityRepository:

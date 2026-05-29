@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const API_BASE = "http://localhost:8080";
+// Use the same host the page was loaded from so this works on LAN (phone access) and localhost
+const API_BASE = `http://${window.location.hostname}:8080`;
 
 export interface Listing {
   id: string | null;
@@ -43,6 +44,8 @@ export interface Listing {
   ai_guessed_fields: string[];
   rating: string | null;
   seen_at: string | null;
+  whatsapp_phone: string | null;
+  content_updated_at: string | null;
 }
 
 export interface Filters {
@@ -64,6 +67,7 @@ export interface Filters {
   min_floor?: number;
   max_floor?: number;
   keywords?: string;
+  search_query?: string;
   min_entry_date?: string;
   max_entry_date?: string;
   include_inactive?: boolean;
@@ -76,6 +80,7 @@ export interface ScrapeResult {
   total_after_filter: number;
   listings_stored: number;
   new_listings: number;
+  updated_listings: number;
   stored_listing_keys: string[];
 }
 
@@ -108,6 +113,7 @@ export async function fetchListings(filters: Filters, limit = 50, offset = 0): P
   if (filters.min_floor) params.min_floor = filters.min_floor;
   if (filters.max_floor) params.max_floor = filters.max_floor;
   if (filters.keywords) params.keywords = filters.keywords;
+  if (filters.search_query) params.search_query = filters.search_query;
   if (filters.min_entry_date) params.min_entry_date = filters.min_entry_date;
   if (filters.max_entry_date) params.max_entry_date = filters.max_entry_date;
   if (filters.include_inactive) params.include_inactive = true;
@@ -164,6 +170,17 @@ export async function triggerScrape(scrapeParams: ScrapeParams): Promise<ScrapeR
   if (scrapeParams.fb_radius_km != null) params.fb_radius_km = scrapeParams.fb_radius_km;
   if (scrapeParams.headless === false) params.headless = false;
   const { data } = await api.post<ScrapeResult>("/api/scrape", null, { params, timeout: 300000 });
+  return data;
+}
+
+export interface ScrapeUrlResult {
+  status: "new" | "updated" | "error";
+  message: string;
+  listing: Listing | null;
+}
+
+export async function scrapeListingUrl(url: string): Promise<ScrapeUrlResult> {
+  const { data } = await api.post<ScrapeUrlResult>("/api/scrape/url", { url }, { timeout: 120000 });
   return data;
 }
 
@@ -371,4 +388,69 @@ export async function deleteFacebookCityApi(id: string): Promise<void> {
 export async function bulkImportFacebookCities(cities: FacebookCityData[]): Promise<{ imported: number }> {
   const { data } = await api.post<{ imported: number }>("/api/facebook-cities/bulk-import", { cities });
   return data;
+}
+
+// Tags
+export interface TagData {
+  id: string;
+  name: string;
+  color: string;
+  listingIds: string[];
+  createdAt: string;
+}
+
+export async function fetchTags(): Promise<TagData[]> {
+  const { data } = await api.get<TagData[]>("/api/tags");
+  return data;
+}
+
+export async function createTagApi(name: string, color: string, id?: string): Promise<TagData> {
+  const { data } = await api.post<TagData>("/api/tags", { name, color, id });
+  return data;
+}
+
+export async function renameTagApi(tagId: string, name: string): Promise<void> {
+  await api.put(`/api/tags/${tagId}/name`, { name });
+}
+
+export async function deleteTagApi(tagId: string): Promise<void> {
+  await api.delete(`/api/tags/${tagId}`);
+}
+
+export async function addListingToTagApi(tagId: string, listingId: string): Promise<void> {
+  await api.post(`/api/tags/${tagId}/listings`, { listingIds: [listingId] });
+}
+
+export async function removeFromTagApi(tagId: string, listingId: string): Promise<void> {
+  await api.delete(`/api/tags/${tagId}/listings/${listingId}`);
+}
+
+// WhatsApp (Green API)
+export interface WhatsappMessage {
+  type: "incoming" | "outgoing";
+  idMessage: string;
+  timestamp: number;
+  typeMessage: string;
+  chatId: string;
+  textMessage?: string;
+  caption?: string;
+}
+
+export async function setListingWhatsappPhone(source: string, sourceId: string, phone: string): Promise<Listing> {
+  const { data } = await api.put<Listing>(`/api/listings/${source}/${sourceId}/whatsapp-phone`, { phone });
+  return data;
+}
+
+export async function removeListingWhatsappPhone(source: string, sourceId: string): Promise<Listing> {
+  const { data } = await api.delete<Listing>(`/api/listings/${source}/${sourceId}/whatsapp-phone`);
+  return data;
+}
+
+export async function fetchWhatsappHistory(source: string, sourceId: string, count = 50): Promise<WhatsappMessage[]> {
+  const { data } = await api.get<WhatsappMessage[]>(`/api/listings/${source}/${sourceId}/whatsapp/history`, { params: { count } });
+  return data;
+}
+
+export async function sendWhatsappMessage(source: string, sourceId: string, message: string): Promise<void> {
+  await api.post(`/api/listings/${source}/${sourceId}/whatsapp/send`, { message });
 }

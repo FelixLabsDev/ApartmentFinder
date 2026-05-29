@@ -46,6 +46,9 @@ class SearchFilter(BaseModel):
     keywords: list[str] = []
     exclude_keywords: list[str] = []
 
+    # Global search query: matches source_url, title, description, street, neighborhood, contact fields
+    search_query: str | None = None
+
     @field_validator("cities", "neighborhoods", mode="before")
     @classmethod
     def lowercase_list(cls, v: list[str]) -> list[str]:

@@ -13,7 +13,7 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173). The backend API must be running on `http://localhost:8000` (or as configured in `src/api.ts`).
+Open [http://localhost:3000](http://localhost:3000). The backend API must be running on port 8080 (or as configured in `src/api.ts`).
 
 ---
 

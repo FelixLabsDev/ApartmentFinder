@@ -174,16 +174,24 @@ class Yad2Parser:
 
     @staticmethod
     def _parse_features(raw: dict) -> dict:
-        """Parse feature text fields into boolean flags."""
+        """Parse feature text fields into boolean flags, falling back to numeric count fields."""
         features = {}
         for text_field, bool_field in FEATURE_TEXT_FIELDS.items():
             value = raw.get(text_field, "")
-            if not value or value.strip() == "":
-                features[bool_field] = None  # Unknown
-            elif value.strip() == "אין":  # "none" / "no"
+            if not value or (isinstance(value, str) and value.strip() == ""):
+                features[bool_field] = None  # Unknown from text field
+            elif isinstance(value, str) and value.strip() == "אין":  # "none" / "no"
                 features[bool_field] = False
             else:
                 features[bool_field] = True
+
+            # Fallback: check numeric count field (e.g. "Porch" when "Porch_text" is missing/empty)
+            if features[bool_field] is None:
+                count_field = text_field.replace("_text", "")
+                count_val = raw.get(count_field)
+                if count_val is not None:
+                    features[bool_field] = bool(count_val)
+
         return features
 
     @staticmethod

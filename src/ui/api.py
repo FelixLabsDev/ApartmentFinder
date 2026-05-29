@@ -14,7 +14,7 @@ from pydantic import BaseModel
 
 from src.config import get_settings
 from src.db.engine import get_async_engine, get_async_session
-from src.db.repository import FacebookCityRepository, FolderRepository, ListingRepository, NoteRepository, ScrapeRunRepository, SearchProfileRepository
+from src.db.repository import FacebookCityRepository, FolderRepository, ListingRepository, NoteRepository, ScrapeRunRepository, SearchProfileRepository, TagRepository
 from src.db.tables import Base, SearchProfileRow
 from src.models.filters import SearchFilter
 from src.pipeline.deduplicator import ListingDeduplicator
@@ -30,17 +30,26 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="ApartmentFinder API",
-    version="0.1.0",
+    version="1.1.0",
     description="API for apartment listing aggregation from Yad2, Facebook Marketplace, and Madlan",
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173", "http://localhost:8080"],
-    allow_credentials=True,
+    # Allow all origins so the app is reachable from other devices on the LAN
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# Prevent browser from caching API responses so stale state is never served after changes
+@app.middleware("http")
+async def no_cache_middleware(request, call_next):
+    response = await call_next(request)
+    response.headers["Cache-Control"] = "no-store"
+    return response
 
 
 @app.on_event("startup")
@@ -57,11 +66,24 @@ async def startup():
             "ALTER TABLE listings ADD COLUMN ai_guessed_fields JSON DEFAULT '[]'",
             "ALTER TABLE listings ADD COLUMN rating VARCHAR(20)",
             "ALTER TABLE listings ADD COLUMN seen_at DATETIME",
+            "ALTER TABLE listings ADD COLUMN whatsapp_phone VARCHAR(30)",
+            "CREATE TABLE IF NOT EXISTS tags (id VARCHAR(36) PRIMARY KEY, name VARCHAR(200) NOT NULL, color VARCHAR(20) NOT NULL DEFAULT '#718096', listing_ids JSON DEFAULT '[]', created_at DATETIME)",
+            "ALTER TABLE listings ADD COLUMN content_updated_at DATETIME",
         ]:
             try:
                 await conn.execute(text(migration))
             except Exception:
                 pass  # Column already exists
+
+    # One-time repair: fix any tag/folder keys stored with colon separator instead of hyphen
+    async with get_async_session() as session:
+        folder_repo = FolderRepository(session)
+        tag_repo = TagRepository(session)
+        folder_count = await folder_repo.fix_colon_keys()
+        tag_count = await tag_repo.fix_colon_keys()
+        await session.commit()
+        if folder_count or tag_count:
+            logger.info("Repaired colon-keyed listing IDs: %d folder(s), %d tag(s) updated", folder_count, tag_count)
 
 
 # ---------------------------------------------------------------------------
@@ -109,6 +131,8 @@ class ListingResponse(BaseModel):
     ai_guessed_fields: list[str] = []
     rating: str | None = None
     seen_at: str | None = None
+    whatsapp_phone: str | None = None
+    content_updated_at: str | None = None
 
 
 class ScrapeResponse(BaseModel):
@@ -117,6 +141,7 @@ class ScrapeResponse(BaseModel):
     total_after_filter: int
     listings_stored: int
     new_listings: int
+    updated_listings: int = 0
     stored_listing_keys: list[str] = []
 
 
@@ -155,6 +180,7 @@ async def get_listings(
     min_floor: Optional[int] = Query(None),
     max_floor: Optional[int] = Query(None),
     keywords: Optional[str] = Query(None, description="Comma-separated keywords to search in title/description"),
+    search_query: Optional[str] = Query(None, description="Free-text search across URL, title, description, address, and contact fields"),
     min_entry_date: Optional[str] = Query(None, description="Earliest move-in date (YYYY-MM-DD)"),
     max_entry_date: Optional[str] = Query(None, description="Latest move-in date (YYYY-MM-DD)"),
     include_inactive: Optional[bool] = Query(None, description="Include inactive (possibly taken) listings"),
@@ -189,6 +215,7 @@ async def get_listings(
         require_furnished=require_furnished,
         require_pet_friendly=require_pet_friendly,
         keywords=keyword_list,
+        search_query=search_query or None,
     )
 
     async with get_async_session() as session:
@@ -309,13 +336,14 @@ async def trigger_scrape(
     # Store results
     listings_stored = 0
     new_listings = 0
+    updated_listings = 0
     stored_keys: list[str] = []
     if result.listings:
         dedup = ListingDeduplicator()
         fingerprints = [dedup.compute_fingerprint(l) for l in result.listings]
         async with get_async_session() as session:
             repo = ListingRepository(session)
-            listings_stored, new_listings = await repo.upsert_listings(result.listings, fingerprints)
+            listings_stored, new_listings, updated_listings = await repo.upsert_listings(result.listings, fingerprints)
             await session.commit()
         # Collect listing keys (source-source_id) matching frontend's listingKey format
         stored_keys = [f"{l.source.value}-{l.source_id}" for l in result.listings]
@@ -326,6 +354,7 @@ async def trigger_scrape(
         total_after_filter=result.total_after_filter,
         listings_stored=listings_stored,
         new_listings=new_listings,
+        updated_listings=updated_listings,
         stored_listing_keys=stored_keys,
     )
 
@@ -794,18 +823,18 @@ async def bulk_import_folders(body: BulkImportFoldersRequest):
 
 
 class RatingRequest(BaseModel):
-    rating: str  # "liked" or "disliked"
+    rating: str  # "1"-"5" (1=Hard No, 2=Not Interested, 3=Maybe, 4=Interested, 5=Perfect Match)
 
 
 class BulkRatingsRequest(BaseModel):
-    ratings: dict[str, str]  # {"source-source_id": "liked"|"disliked"}
+    ratings: dict[str, str]  # {"source-source_id": "1"|"2"|"3"|"4"|"5"}
 
 
 @app.put("/api/listings/{source}/{source_id}/rating", tags=["Ratings"])
 async def set_rating(source: str, source_id: str, body: RatingRequest):
-    """Set rating on a listing."""
-    if body.rating not in ("liked", "disliked"):
-        return {"ok": False, "error": "Rating must be 'liked' or 'disliked'"}
+    """Set rating on a listing. Accepts 1-5 (tiered scale)."""
+    if body.rating not in ("1", "2", "3", "4", "5"):
+        return {"ok": False, "error": "Rating must be '1', '2', '3', '4', or '5'"}
     async with get_async_session() as session:
         repo = ListingRepository(session)
         found = await repo.set_rating(source, source_id, body.rating)
@@ -997,6 +1026,184 @@ async def ai_extract_listing(source: str, source_id: str):
         return _row_to_response(row)
 
 
+# ---------------------------------------------------------------------------
+# Tags
+# ---------------------------------------------------------------------------
+
+
+class TagResponse(BaseModel):
+    id: str
+    name: str
+    color: str
+    listingIds: list[str]
+    createdAt: str
+
+
+class CreateTagRequest(BaseModel):
+    name: str
+    color: str = "#718096"
+    id: str | None = None
+
+
+class RenameTagRequest(BaseModel):
+    name: str
+
+
+class AddListingToTagRequest(BaseModel):
+    listingIds: list[str]
+
+
+def _tag_to_response(row) -> TagResponse:
+    return TagResponse(id=row.id, name=row.name, color=row.color, listingIds=row.listing_ids or [], createdAt=str(row.created_at))
+
+
+@app.get("/api/tags", response_model=list[TagResponse], tags=["Tags"])
+async def get_tags():
+    async with get_async_session() as session:
+        repo = TagRepository(session)
+        rows = await repo.get_all()
+    return [_tag_to_response(r) for r in rows]
+
+
+@app.post("/api/tags", response_model=TagResponse, tags=["Tags"])
+async def create_tag(body: CreateTagRequest):
+    async with get_async_session() as session:
+        repo = TagRepository(session)
+        row = await repo.create(body.name, body.color, tag_id=body.id)
+        await session.commit()
+    return _tag_to_response(row)
+
+
+@app.put("/api/tags/{tag_id}/name", tags=["Tags"])
+async def rename_tag(tag_id: str, body: RenameTagRequest):
+    async with get_async_session() as session:
+        repo = TagRepository(session)
+        found = await repo.rename(tag_id, body.name)
+        await session.commit()
+    return {"ok": found}
+
+
+@app.delete("/api/tags/{tag_id}", tags=["Tags"])
+async def delete_tag(tag_id: str):
+    async with get_async_session() as session:
+        repo = TagRepository(session)
+        found = await repo.delete(tag_id)
+        await session.commit()
+    return {"ok": found}
+
+
+@app.post("/api/tags/{tag_id}/listings", tags=["Tags"])
+async def add_listing_to_tag(tag_id: str, body: AddListingToTagRequest):
+    async with get_async_session() as session:
+        repo = TagRepository(session)
+        for lid in body.listingIds:
+            await repo.add_listing(tag_id, lid)
+        await session.commit()
+    return {"ok": True}
+
+
+@app.delete("/api/tags/{tag_id}/listings/{listing_id:path}", tags=["Tags"])
+async def remove_listing_from_tag(tag_id: str, listing_id: str):
+    async with get_async_session() as session:
+        repo = TagRepository(session)
+        found = await repo.remove_listing(tag_id, listing_id)
+        await session.commit()
+    return {"ok": found}
+
+
+# ---------------------------------------------------------------------------
+# WhatsApp (Green API)
+# ---------------------------------------------------------------------------
+
+
+class SetWhatsappPhoneRequest(BaseModel):
+    phone: str
+
+
+class SendWhatsappRequest(BaseModel):
+    message: str
+
+
+@app.put("/api/listings/{source}/{source_id}/whatsapp-phone", response_model=ListingResponse, tags=["WhatsApp"])
+async def set_whatsapp_phone(source: str, source_id: str, body: SetWhatsappPhoneRequest):
+    """Assign a WhatsApp phone number to a listing for Green API integration."""
+    async with get_async_session() as session:
+        repo = ListingRepository(session)
+        row = await repo.set_whatsapp_phone(source, source_id, body.phone.strip())
+        await session.commit()
+    if row is None:
+        raise HTTPException(status_code=404, detail="Listing not found")
+    return _row_to_response(row)
+
+
+@app.delete("/api/listings/{source}/{source_id}/whatsapp-phone", response_model=ListingResponse, tags=["WhatsApp"])
+async def remove_whatsapp_phone(source: str, source_id: str):
+    """Remove the WhatsApp phone number from a listing."""
+    async with get_async_session() as session:
+        repo = ListingRepository(session)
+        row = await repo.set_whatsapp_phone(source, source_id, None)
+        await session.commit()
+    if row is None:
+        raise HTTPException(status_code=404, detail="Listing not found")
+    return _row_to_response(row)
+
+
+@app.get("/api/listings/{source}/{source_id}/whatsapp/history", tags=["WhatsApp"])
+async def get_whatsapp_history(source: str, source_id: str, count: int = Query(50, ge=1, le=200)):
+    """Fetch WhatsApp chat history for a listing via Green API."""
+    import httpx
+    settings = get_settings()
+    if not settings.green_api_instance_id or not settings.green_api_token:
+        raise HTTPException(status_code=503, detail="Green API credentials not configured (set GREEN_API_INSTANCE_ID and GREEN_API_TOKEN)")
+
+    async with get_async_session() as session:
+        repo = ListingRepository(session)
+        row = await repo.get_listing(source, source_id)
+    if row is None:
+        raise HTTPException(status_code=404, detail="Listing not found")
+    if not row.whatsapp_phone:
+        raise HTTPException(status_code=400, detail="No WhatsApp phone number set for this listing")
+
+    # Strip non-digits to normalize the phone for Green API chat ID format
+    phone_digits = "".join(c for c in row.whatsapp_phone if c.isdigit())
+    chat_id = f"{phone_digits}@c.us"
+    url = f"https://api.green-api.com/waInstance{settings.green_api_instance_id}/getChatHistory/{settings.green_api_token}"
+
+    async with httpx.AsyncClient(timeout=30) as client:
+        resp = await client.post(url, json={"chatId": chat_id, "count": count})
+    if resp.status_code != 200:
+        raise HTTPException(status_code=502, detail=f"Green API error {resp.status_code}: {resp.text}")
+    return resp.json()
+
+
+@app.post("/api/listings/{source}/{source_id}/whatsapp/send", tags=["WhatsApp"])
+async def send_whatsapp_message(source: str, source_id: str, body: SendWhatsappRequest):
+    """Send a WhatsApp message to the listing contact via Green API."""
+    import httpx
+    settings = get_settings()
+    if not settings.green_api_instance_id or not settings.green_api_token:
+        raise HTTPException(status_code=503, detail="Green API credentials not configured (set GREEN_API_INSTANCE_ID and GREEN_API_TOKEN)")
+
+    async with get_async_session() as session:
+        repo = ListingRepository(session)
+        row = await repo.get_listing(source, source_id)
+    if row is None:
+        raise HTTPException(status_code=404, detail="Listing not found")
+    if not row.whatsapp_phone:
+        raise HTTPException(status_code=400, detail="No WhatsApp phone number set for this listing")
+
+    phone_digits = "".join(c for c in row.whatsapp_phone if c.isdigit())
+    chat_id = f"{phone_digits}@c.us"
+    url = f"https://api.green-api.com/waInstance{settings.green_api_instance_id}/sendMessage/{settings.green_api_token}"
+
+    async with httpx.AsyncClient(timeout=30) as client:
+        resp = await client.post(url, json={"chatId": chat_id, "message": body.message})
+    if resp.status_code != 200:
+        raise HTTPException(status_code=502, detail=f"Green API error {resp.status_code}: {resp.text}")
+    logger.info("WhatsApp message sent to %s for listing %s-%s", row.whatsapp_phone, source, source_id)
+    return resp.json()
+
+
 def _row_to_response(row) -> ListingResponse:
     """Convert a DB row to a ListingResponse."""
     return ListingResponse(
@@ -1040,4 +1247,141 @@ def _row_to_response(row) -> ListingResponse:
         ai_guessed_fields=getattr(row, "ai_guessed_fields", None) or [],
         rating=getattr(row, "rating", None),
         seen_at=str(row.seen_at) if getattr(row, "seen_at", None) else None,
+        whatsapp_phone=getattr(row, "whatsapp_phone", None),
+        content_updated_at=str(row.content_updated_at) if getattr(row, "content_updated_at", None) else None,
     )
+
+
+class ScrapeUrlRequest(BaseModel):
+    url: str
+
+
+class ScrapeUrlResponse(BaseModel):
+    status: str          # "new" | "updated" | "error"
+    message: str
+    listing: Optional[ListingResponse] = None
+
+
+@app.post("/api/scrape/url", response_model=ScrapeUrlResponse, tags=["Scraping"])
+async def scrape_listing_url(body: ScrapeUrlRequest):
+    """Scrape a single Facebook Marketplace listing URL, AI-extract its fields, and upsert into the database."""
+    from datetime import date as date_type
+
+    from src.ai.extractor import extract_listing_fields
+    from src.db.repository import ListingRepository
+    from src.models.enums import Currency, PropertyType, Source
+    from src.models.listing import ListingCreate
+    from src.pipeline.deduplicator import ListingDeduplicator
+    from src.pipeline.normalizer import ListingNormalizer
+    from src.scrapers.telegram_links.scraper import extract_fb_listing_id, scrape_fb_listing
+
+    url = body.url.strip()
+    if not url:
+        raise HTTPException(status_code=422, detail="URL is required")
+
+    # Scrape the listing page
+    try:
+        scraped = await scrape_fb_listing(url)
+    except Exception as exc:
+        logger.error("scrape/url: scrape failed for %s: %s", url, exc)
+        raise HTTPException(status_code=502, detail=f"Failed to scrape listing: {exc}")
+
+    if not scraped.text_content.strip():
+        raise HTTPException(status_code=422, detail="Could not extract text from the listing page — the page may require a Facebook login session.")
+
+    # AI field extraction
+    try:
+        result = await extract_listing_fields(scraped.text_content, title=scraped.title)
+    except Exception as exc:
+        logger.error("scrape/url: AI extraction failed for %s: %s", url, exc)
+        raise HTTPException(status_code=502, detail=f"AI extraction failed: {exc}")
+
+    fields = result.extracted_fields
+
+    # Parse typed fields
+    prop_type = None
+    if fields.get("property_type"):
+        try:
+            prop_type = PropertyType(fields["property_type"])
+        except ValueError:
+            prop_type = PropertyType.OTHER
+
+    currency = Currency.USD if fields.get("currency") == "USD" else Currency.ILS
+
+    entry_date = None
+    if fields.get("entry_date"):
+        try:
+            entry_date = date_type.fromisoformat(fields["entry_date"])
+        except (ValueError, TypeError):
+            pass
+
+    listing_id = scraped.listing_id or extract_fb_listing_id(url)
+
+    listing = ListingCreate(
+        source=Source.FACEBOOK,
+        source_id=listing_id,
+        source_url=url,
+        title=scraped.title or fields.get("description", "")[:100] or "Facebook Listing",
+        price=fields.get("price"),
+        currency=currency,
+        city=fields.get("city") or "unknown",
+        neighborhood=fields.get("neighborhood"),
+        street=fields.get("street"),
+        house_number=fields.get("house_number"),
+        rooms=fields.get("rooms"),
+        floor=fields.get("floor"),
+        total_floors=fields.get("total_floors"),
+        area_sqm=fields.get("area_sqm"),
+        description=fields.get("description"),
+        image_urls=scraped.image_urls,
+        property_type=prop_type,
+        has_parking=fields.get("has_parking"),
+        has_elevator=fields.get("has_elevator"),
+        has_balcony=fields.get("has_balcony"),
+        has_air_conditioning=fields.get("has_air_conditioning"),
+        has_mamad=fields.get("has_mamad"),
+        is_accessible=fields.get("is_accessible"),
+        is_furnished=fields.get("is_furnished"),
+        has_bars=fields.get("has_bars"),
+        has_storage=fields.get("has_storage"),
+        pet_friendly=fields.get("pet_friendly"),
+        contact_name=fields.get("contact_name"),
+        contact_phone=fields.get("contact_phone"),
+        entry_date=entry_date,
+        posted_at=datetime.utcnow(),
+        ai_guessed_fields=result.guessed_fields,
+    )
+
+    # Normalize and upsert
+    normalizer = ListingNormalizer()
+    deduplicator = ListingDeduplicator()
+    normalized = normalizer.normalize_batch([listing])
+    listing = normalized[0] if normalized else listing
+    fingerprint = deduplicator.compute_fingerprint(listing)
+
+    try:
+        async with get_async_session() as session:
+            repo = ListingRepository(session)
+            _total, new_count, _updated = await repo.upsert_listings([listing], [fingerprint])
+            await session.commit()
+    except Exception as exc:
+        logger.error("scrape/url: DB upsert failed for %s: %s", url, exc)
+        raise HTTPException(status_code=500, detail=f"Failed to save listing: {exc}")
+
+    status = "new" if new_count > 0 else "updated"
+    logger.info("scrape/url: %s listing %s from %s", status, listing_id, url)
+
+    # Fetch the stored row to return a full ListingResponse
+    from sqlalchemy import select as sql_select
+    from src.db.tables import ListingRow
+    async with get_async_session() as session:
+        result_row = await session.execute(
+            sql_select(ListingRow).where(
+                ListingRow.source == listing.source.value,
+                ListingRow.source_id == listing.source_id,
+            )
+        )
+        row = result_row.scalar_one_or_none()
+
+    listing_resp = _row_to_response(row) if row else None
+    return ScrapeUrlResponse(status=status, message=f"Listing {status} successfully.", listing=listing_resp)

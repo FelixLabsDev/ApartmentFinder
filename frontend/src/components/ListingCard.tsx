@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import type { Listing } from "../api";
 import type { Rating } from "../hooks/useListingRatings";
+import { RatingBadge } from "./RatingBadge";
 import type { Folder } from "../hooks/useFolders";
+import type { Tag } from "../hooks/useListingTags";
 
 function timeAgo(dateStr: string): { text: string; stale: boolean } {
   const now = Date.now();
@@ -55,8 +58,8 @@ function ImageCarousel({ images, onClick }: { images: string[]; onClick?: () => 
       )}
       {hasMultiple && (
         <>
-          <button className="carousel-btn carousel-prev" onClick={goPrev}>&lt;</button>
-          <button className="carousel-btn carousel-next" onClick={goNext}>&gt;</button>
+          <button className="carousel-btn carousel-prev" onClick={(e) => { e.stopPropagation(); goPrev(); }}>&lt;</button>
+          <button className="carousel-btn carousel-next" onClick={(e) => { e.stopPropagation(); goNext(); }}>&gt;</button>
           <span className="carousel-counter">{idx + 1}/{images.length}</span>
         </>
       )}
@@ -136,6 +139,133 @@ function FolderDropdown({
   );
 }
 
+// Available colors for new tags
+const TAG_PALETTE = ["#fc8181", "#f6ad55", "#68d391", "#63b3ed", "#b794f4", "#fbb6ce", "#81e6d9", "#faf089"];
+
+function TagDropdown({
+  allTags,
+  listingTags,
+  onAddToTag,
+  onRemoveFromTag,
+  onCreateTag,
+}: {
+  allTags: Tag[];
+  listingTags: Tag[];
+  onAddToTag: (tagId: string) => void;
+  onRemoveFromTag: (tagId: string) => void;
+  onCreateTag: (name: string, color: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [pickedColor, setPickedColor] = useState(TAG_PALETTE[0]);
+  // Viewport-fixed position captured when the dropdown opens so it never shifts
+  const [dropPos, setDropPos] = useState<{ top: number; right: number }>({ top: 0, right: 0 });
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const dropRef = useRef<HTMLDivElement>(null);
+  const inTagIds = new Set(listingTags.map((t) => t.id));
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (
+        dropRef.current && !dropRef.current.contains(e.target as Node) &&
+        btnRef.current && !btnRef.current.contains(e.target as Node)
+      ) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [open]);
+
+  // Recompute position on any scroll so the dropdown tracks the button
+  useEffect(() => {
+    if (!open) return;
+    const onScroll = () => {
+      if (!btnRef.current) return;
+      const rect = btnRef.current.getBoundingClientRect();
+      // Close if the button has scrolled entirely out of view
+      if (rect.bottom < 0 || rect.top > window.innerHeight) { setOpen(false); return; }
+      setDropPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+    };
+    // Capture phase catches scroll on any nested scrollable element too
+    window.addEventListener("scroll", onScroll, true);
+    return () => window.removeEventListener("scroll", onScroll, true);
+  }, [open]);
+
+  const handleOpen = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!open && btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      // Anchor the dropdown's top-right corner to the button's bottom-right
+      setDropPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+    }
+    setOpen((v) => !v);
+  };
+
+  const submitNew = () => {
+    if (!newName.trim()) return;
+    onCreateTag(newName.trim(), pickedColor);
+    setNewName("");
+    setPickedColor(TAG_PALETTE[0]);
+  };
+
+  return (
+    <div className="tag-dropdown-wrap">
+      <button ref={btnRef} className="tag-add-btn" onClick={handleOpen} title="Add tag">
+        {"\uD83C\uDFF7"}
+      </button>
+      {open && createPortal(
+        <div
+          ref={dropRef}
+          className="tag-dropdown"
+          style={{ position: "fixed", top: dropPos.top, right: dropPos.right, left: "auto" }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {allTags.length === 0 && <div className="tag-dropdown-empty">No tags yet</div>}
+          {allTags.map((t) => (
+            <label key={t.id} className="tag-dropdown-item">
+              <input
+                type="checkbox"
+                checked={inTagIds.has(t.id)}
+                onChange={() => inTagIds.has(t.id) ? onRemoveFromTag(t.id) : onAddToTag(t.id)}
+              />
+              <span className="tag-swatch" style={{ background: t.color }} />
+              {t.name}
+            </label>
+          ))}
+          {/* New tag creation: color palette + name input */}
+          <div className="tag-dropdown-create">
+            <div className="tag-color-picker">
+              {TAG_PALETTE.map((c) => (
+                <button
+                  key={c}
+                  className={`tag-palette-btn${pickedColor === c ? " selected" : ""}`}
+                  style={{ background: c }}
+                  onClick={() => setPickedColor(c)}
+                  title={c}
+                />
+              ))}
+            </div>
+            <div className="tag-create-row">
+              <span className="tag-preview" style={{ background: pickedColor }} />
+              <input
+                type="text"
+                placeholder="New tag name..."
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") submitNew(); }}
+              />
+              <button className="tag-create-btn" onClick={submitNew} disabled={!newName.trim()}>+</button>
+            </div>
+          </div>
+          <button className="tag-dropdown-done" onClick={() => setOpen(false)}>Done</button>
+        </div>,
+        document.body,
+      )}
+    </div>
+  );
+}
+
 // Fields that should be highlighted red when missing on AI-extracted listings
 const REQUIRED_DISPLAY_FIELDS: Record<string, { label: string; getValue: (l: Listing) => unknown }> = {
   price: { label: "Price", getValue: (l) => l.price },
@@ -158,28 +288,38 @@ function isMissingField(listing: Listing, field: string): boolean {
 export function ListingCard({
   listing,
   rating,
-  onToggleLike,
-  onToggleDislike,
+  onSetRating,
   folders,
   listingFolders,
   onAddToFolder,
   onRemoveFromFolder,
   onCreateFolder,
+  allTags,
+  listingTags,
+  onAddToTag,
+  onRemoveFromTag,
+  onCreateTag,
   noteCount,
   isNew,
+  isUpdated = false,
   onOpenDetail,
 }: {
   listing: Listing;
   rating: Rating | null;
-  onToggleLike: () => void;
-  onToggleDislike: () => void;
+  onSetRating: (level: Rating) => void;
   folders: Folder[];
   listingFolders: Folder[];
   onAddToFolder: (folderId: string) => void;
   onRemoveFromFolder: (folderId: string) => void;
   onCreateFolder: (name: string) => void;
+  allTags: Tag[];
+  listingTags: Tag[];
+  onAddToTag: (tagId: string) => void;
+  onRemoveFromTag: (tagId: string) => void;
+  onCreateTag: (name: string, color: string) => void;
   noteCount: number;
   isNew: boolean;
+  isUpdated?: boolean;
   onOpenDetail: () => void;
 }) {
   const isTelegram = listing.source === "telegram";
@@ -215,16 +355,17 @@ export function ListingCard({
   const cardClasses = [
     "listing-card",
     isNew && "listing-new",
+    isUpdated && !isNew && "listing-updated",
     isInactive && "listing-inactive",
-    rating === "liked" && "listing-liked",
-    rating === "disliked" && "listing-disliked",
+    rating && `listing-rating-${rating}`,
   ].filter(Boolean).join(" ");
 
   return (
-    <div className={cardClasses}>
+    <div className={cardClasses} onClick={onOpenDetail} style={{ cursor: "pointer" }}>
       <div className="card-image-wrapper">
-        <ImageCarousel images={listing.image_urls} onClick={onOpenDetail} />
+        <ImageCarousel images={listing.image_urls} />
         {isNew && <span className="new-badge">NEW</span>}
+        {isUpdated && !isNew && <span className="updated-badge">UPDATED</span>}
       </div>
 
       <div className="card-header">
@@ -233,22 +374,7 @@ export function ListingCard({
           {priceSqm && <span className="price-per-sqm">{priceSqm}</span>}
         </div>
         <div className="card-header-right">
-          <div className="rating-btns">
-            <button
-              className={`rating-btn like-btn${rating === "liked" ? " active" : ""}`}
-              onClick={(e) => { e.stopPropagation(); onToggleLike(); }}
-              title={rating === "liked" ? "Remove like" : "Like"}
-            >
-              {"\uD83D\uDC4D"}
-            </button>
-            <button
-              className={`rating-btn dislike-btn${rating === "disliked" ? " active" : ""}`}
-              onClick={(e) => { e.stopPropagation(); onToggleDislike(); }}
-              title={rating === "disliked" ? "Remove dislike" : "Dislike"}
-            >
-              {"\uD83D\uDC4E"}
-            </button>
-          </div>
+          <RatingBadge rating={rating} onSetRating={onSetRating} />
           <FolderDropdown
             folders={folders}
             listingFolders={listingFolders}
@@ -271,11 +397,26 @@ export function ListingCard({
         </div>
       </div>
 
-      <h3 className="card-title" onClick={onOpenDetail} style={{ cursor: "pointer" }}>
-        {listing.rooms ? `${listing.rooms} rooms` : isTelegram ? <span className="field-missing">Rooms N/A</span> : null}
-        {listing.rooms && listing.city && listing.city !== "unknown" && " in "}
-        {listing.city && listing.city !== "unknown" ? listing.city : isTelegram ? <span className="field-missing"> City N/A</span> : null}
-      </h3>
+      <div className="card-title-row">
+        <h3 className="card-title">
+          {listing.rooms ? `${listing.rooms} rooms` : isTelegram ? <span className="field-missing">Rooms N/A</span> : null}
+          {listing.rooms && listing.city && listing.city !== "unknown" && " in "}
+          {listing.city && listing.city !== "unknown" ? listing.city : isTelegram ? <span className="field-missing"> City N/A</span> : null}
+        </h3>
+        {/* Tag chips + dropdown button, aligned right of title */}
+        <div className="card-tags-area">
+          {listingTags.map((t) => (
+            <span key={t.id} className="tag-chip" style={{ background: t.color }}>{t.name}</span>
+          ))}
+          <TagDropdown
+            allTags={allTags}
+            listingTags={listingTags}
+            onAddToTag={onAddToTag}
+            onRemoveFromTag={onRemoveFromTag}
+            onCreateTag={onCreateTag}
+          />
+        </div>
+      </div>
 
       {isTelegram && (
         <div className="card-missing-fields">
@@ -317,7 +458,7 @@ export function ListingCard({
       )}
 
       {listing.description && (
-        <p className="card-description" onClick={onOpenDetail} style={{ cursor: "pointer" }}>
+        <p className="card-description">
           {listing.description.length > 150
             ? listing.description.slice(0, 150) + "..."
             : listing.description}
@@ -325,7 +466,7 @@ export function ListingCard({
       )}
 
       <div className="card-footer">
-        <div className="card-contact">
+        <div className="card-contact" onClick={(e) => e.stopPropagation()}>
           {listing.contact_name && <span>{listing.contact_name}</span>}
           {listing.contact_phone && (
             <a href={`tel:${listing.contact_phone}`} className="contact-phone">
@@ -333,22 +474,45 @@ export function ListingCard({
             </a>
           )}
         </div>
-        <a
-          href={listing.source_url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn-view"
-          onClick={(e) => {
-            if (!e.ctrlKey && !e.metaKey && e.button === 0) {
-              e.preventDefault();
-              window.open(listing.source_url, "_blank", "noopener,noreferrer");
-              window.focus();
-              onOpenDetail();
-            }
-          }}
-        >
-          View Listing
-        </a>
+        <div className="card-footer-actions">
+          {/* Build Google Maps URL: prefer coordinates, fall back to address string */}
+          {(listing.latitude && listing.longitude
+            ? `https://www.google.com/maps?q=${listing.latitude},${listing.longitude}`
+            : listing.street || listing.city
+              ? `https://www.google.com/maps/search/${encodeURIComponent([listing.street, listing.city].filter(Boolean).join(", "))}`
+              : null
+          ) && (
+            <a
+              href={
+                listing.latitude && listing.longitude
+                  ? `https://www.google.com/maps?q=${listing.latitude},${listing.longitude}`
+                  : `https://www.google.com/maps/search/${encodeURIComponent([listing.street, listing.city].filter(Boolean).join(", "))}`
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-maps"
+              onClick={(e) => e.stopPropagation()}
+            >
+              Maps
+            </a>
+          )}
+          <a
+            href={listing.source_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-view"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!e.ctrlKey && !e.metaKey && e.button === 0) {
+                e.preventDefault();
+                window.open(listing.source_url, "_blank", "noopener,noreferrer");
+                window.focus();
+              }
+            }}
+          >
+            View Listing
+          </a>
+        </div>
       </div>
     </div>
   );

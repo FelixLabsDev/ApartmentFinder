@@ -612,32 +612,51 @@ class FacebookPlaywrightScraper(BaseScraper):
                     "Facebook Playwright: fetching detail %d/%d — %s",
                     index, total, detail_url,
                 )
-            page.goto(detail_url, wait_until="domcontentloaded", timeout=20000)
-            page.wait_for_timeout(3000)
+
+            # Intercept network responses to capture full-resolution image URLs.
+            # Reading img.src from the DOM gives the browser-rendered (downscaled) version;
+            # the actual CDN request URL is the original full-res upload.
+            intercepted_image_urls: list[str] = []
+            seen_intercepted: set[str] = set()
+
+            def _handle_image_response(response) -> None:
+                url = response.url
+                if url in seen_intercepted:
+                    return
+                if ("scontent" in url or "fbcdn" in url) and "image" in response.headers.get("content-type", ""):
+                    seen_intercepted.add(url)
+                    intercepted_image_urls.append(url)
+
+            page.on("response", _handle_image_response)
+            try:
+                page.goto(detail_url, wait_until="load", timeout=25000)
+                page.wait_for_timeout(2000)
+            finally:
+                page.remove_listener("response", _handle_image_response)
 
             self._dismiss_login_modal(page)
 
             # --- Extract all images ---
-            images: list[dict] = []
-            # Facebook detail pages show images in various containers;
-            # look for all large images in the listing area.
-            img_elements = page.query_selector_all(
-                'img[src*="scontent"], img[src*="fbcdn"]'
-            )
-            seen_srcs: set[str] = set()
-            for img in img_elements:
-                src = img.get_attribute("src") or ""
-                if not src or src in seen_srcs:
-                    continue
-                # Filter out tiny icons/avatars by checking natural dimensions
-                try:
-                    width = img.evaluate("el => el.naturalWidth")
-                    if width and width < 150:
+            # Use the already-intercepted full-res URLs collected during page.goto()
+            images: list[dict] = [{"image": {"uri": u}} for u in intercepted_image_urls]
+
+            # Fallback: if network interception yielded nothing, read img src attributes
+            # (less reliable — gives browser-cached/rendered size rather than original)
+            if not images:
+                img_elements = page.query_selector_all('img[src*="scontent"], img[src*="fbcdn"]')
+                seen_srcs: set[str] = set()
+                for img in img_elements:
+                    src = img.get_attribute("src") or ""
+                    if not src or src in seen_srcs:
                         continue
-                except Exception:
-                    pass
-                seen_srcs.add(src)
-                images.append({"image": {"uri": src}})
+                    try:
+                        width = img.evaluate("el => el.naturalWidth")
+                        if width and width < 150:
+                            continue
+                    except Exception:
+                        pass
+                    seen_srcs.add(src)
+                    images.append({"image": {"uri": src}})
 
             if images:
                 card_data["listing_photos"] = images

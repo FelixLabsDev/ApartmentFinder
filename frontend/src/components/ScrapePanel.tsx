@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { triggerScrape, type ScrapeResult } from "../api";
+import { triggerScrape, scrapeListingUrl, type ScrapeResult } from "../api";
 import type { CityConfig } from "../hooks/useCitySettings";
 import type { FacebookCityConfig } from "../hooks/useFacebookCities";
 import type { Folder } from "../hooks/useFolders";
@@ -91,7 +91,7 @@ function ScrapeYad2Section({
 
       const totals: ScrapeResult = {
         total_scraped: 0, total_after_dedup: 0, total_after_filter: 0,
-        listings_stored: 0, new_listings: 0, stored_listing_keys: [],
+        listings_stored: 0, new_listings: 0, updated_listings: 0, stored_listing_keys: [],
       };
 
       for (const city of cities) {
@@ -116,6 +116,7 @@ function ScrapeYad2Section({
         totals.total_after_filter += result.total_after_filter;
         totals.listings_stored += result.listings_stored;
         totals.new_listings += result.new_listings;
+        totals.updated_listings += result.updated_listings;
         totals.stored_listing_keys.push(...result.stored_listing_keys);
       }
       return totals;
@@ -124,7 +125,7 @@ function ScrapeYad2Section({
       if (targetFolderId && result.stored_listing_keys.length > 0) {
         onAddToFolder(targetFolderId, result.stored_listing_keys);
       }
-      alert(`Yad2: Scraped ${result.total_scraped} listings.\n${result.new_listings} new listings stored.`);
+      alert(`Yad2: Scraped ${result.total_scraped} listings.\n${result.new_listings} new, ${result.updated_listings} updated.`);
       onScrapeComplete();
     },
     onError: (err) => { alert(`Yad2 scrape failed: ${err}`); },
@@ -215,6 +216,67 @@ function ScrapeYad2Section({
   );
 }
 
+function ScrapeUrlSection({
+  onScrapeComplete,
+  folders,
+  onCreateFolder,
+  onAddToFolder,
+}: {
+  onScrapeComplete: () => void;
+  folders: Folder[];
+  onCreateFolder: (name: string) => Folder;
+  onAddToFolder: (folderId: string, keys: string[]) => void;
+}) {
+  const [url, setUrl] = useState("");
+  const [targetFolderId, setTargetFolderId] = useState("");
+
+  const mutation = useMutation({
+    mutationFn: () => scrapeListingUrl(url.trim()),
+    onSuccess: (result) => {
+      if (targetFolderId && result.listing) {
+        const key = `${result.listing.source}-${result.listing.source_id}`;
+        onAddToFolder(targetFolderId, [key]);
+      }
+      const label = result.status === "new" ? "New listing added" : "Listing updated";
+      alert(`${label}.\n${result.message}`);
+      setUrl("");
+      onScrapeComplete();
+    },
+    onError: (err) => { alert(`Failed to scrape URL: ${err}`); },
+  });
+
+  return (
+    <div className="scrape-section scrape-section-url">
+      <h3>Add by URL</h3>
+      <p className="helper-text">Paste a Facebook Marketplace listing link to import it directly.</p>
+
+      <label>Marketplace Link</label>
+      <input
+        type="url"
+        placeholder="https://www.facebook.com/marketplace/item/..."
+        value={url}
+        onChange={(e) => setUrl(e.target.value)}
+        style={{ width: "100%" }}
+      />
+
+      <FolderSelector
+        folders={folders}
+        selectedFolderId={targetFolderId}
+        onChange={setTargetFolderId}
+        onCreateFolder={onCreateFolder}
+      />
+
+      <button
+        className="btn-scrape btn-scrape-facebook"
+        onClick={() => mutation.mutate()}
+        disabled={mutation.isPending || !url.trim()}
+      >
+        {mutation.isPending ? "Importing..." : "Import Listing"}
+      </button>
+    </div>
+  );
+}
+
 function ScrapeFacebookSection({
   onScrapeComplete,
   fbCities,
@@ -248,7 +310,7 @@ function ScrapeFacebookSection({
       if (targetFolderId && result.stored_listing_keys.length > 0) {
         onAddToFolder(targetFolderId, result.stored_listing_keys);
       }
-      alert(`Facebook: Scraped ${result.total_scraped} listings.\n${result.new_listings} new listings stored.`);
+      alert(`Facebook: Scraped ${result.total_scraped} listings.\n${result.new_listings} new, ${result.updated_listings} updated.`);
       onScrapeComplete();
     },
     onError: (err) => { alert(`Facebook scrape failed: ${err}`); },
@@ -363,13 +425,21 @@ export function ScrapeTabSwitcher({
         />
       )}
       {activeTab === "facebook" && (
-        <ScrapeFacebookSection
-          onScrapeComplete={onScrapeComplete}
-          fbCities={fbCities}
-          folders={folders}
-          onCreateFolder={onCreateFolder}
-          onAddToFolder={onAddToFolder}
-        />
+        <>
+          <ScrapeUrlSection
+            onScrapeComplete={onScrapeComplete}
+            folders={folders}
+            onCreateFolder={onCreateFolder}
+            onAddToFolder={onAddToFolder}
+          />
+          <ScrapeFacebookSection
+            onScrapeComplete={onScrapeComplete}
+            fbCities={fbCities}
+            folders={folders}
+            onCreateFolder={onCreateFolder}
+            onAddToFolder={onAddToFolder}
+          />
+        </>
       )}
     </div>
   );

@@ -16,9 +16,14 @@ env/
 # Environment variables
 .env
 
+# Archives (may contain .env, db, browser profiles)
+*.zip
+
 # Database
 data/*.db
 data/*.db-journal
+data/*.db-wal
+data/*.db-shm
 
 # Browser session profiles (contain credentials)
 data/fb_profile/

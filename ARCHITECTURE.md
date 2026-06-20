@@ -1,6 +1,6 @@
 ﻿# ApartmentFinder â€” Architecture Document
 
-> **Version**: 1.1.1 | **Last Updated**: 2026-05-18
+> **Version**: 1.1.3 | **Last Updated**: 2026-06-20
 
 ## Version History
 
@@ -34,6 +34,7 @@
 || 1.0.0 | 2026-05-13 | Hide by Status/Tag filtering: "Hide Hard Nos" toolbar checkbox replaced with multi-select "Hide by Status" (per rating tier) and "Hide by Tag" (per user tag) sections in the Filters sidebar. State persisted as `af_hidden_ratings` (default `["1"]`) and `af_hidden_tag_ids` (default `[]`). |
 || 1.0.1 | 2026-05-13 | Prev/Next navigation in listing detail modal: navigation row added at modal bottom; `selectedListingIdx` derived from `displayListings`; `openListing` helper centralises modal-open + mark-seen logic. Balcony feature tag fix: Yad2 `_parse_features` now falls back to bare numeric field (e.g. `"Porch"`) when `_text` variant is absent; Madlan parser extended with additional `has_balcony` field aliases (`porches`, `porch`, `balconyArea`, `porchArea`). |
 || 1.1.0 | 2026-05-13 | Listing update detection: `content_updated_at` column on `listings`; `upsert_listings` returns `(total, new, updated)` 3-tuple; `_detect_changes` compares all scraped fields; changed listings get `content_updated_at` set and an auto-inserted `[Update]` system note; purple UPDATED badge on listing cards (clears on open, same as NEW badge); `ScrapeResponse` exposes `updated_listings` count. |
+|| 1.1.3 | 2026-06-20 | Public GitHub release: repo published at github.com/FelixLabsDev/ApartmentFinder; git history scrubbed of zip archive; `.gitignore` hardened for `*.zip` and SQLite WAL/SHM sidecar files. |
 
 ---
 
@@ -351,4 +352,20 @@ uv run pytest tests/ -m "not integration" -v
 uv run pytest tests/ -v
 ```
 
+---
+
+## Repository
+
+**Public source**: [github.com/FelixLabsDev/ApartmentFinder](https://github.com/FelixLabsDev/ApartmentFinder)
+
+### Local secrets (gitignored)
+
+Contributors must not commit runtime secrets or session data. `.gitignore` excludes:
+
+- `.env` — API tokens and optional Facebook cookie strings
+- `data/*.db`, `data/*.db-journal`, `data/*.db-wal`, `data/*.db-shm` — SQLite database files
+- `data/fb_profile/`, `data/madlan_profile/` — Playwright persistent browser profiles
+- `*.zip` — archives may bundle the paths above
+
+Copy `.env.example` to `.env` locally. Never commit zip backups of the project folder.
 

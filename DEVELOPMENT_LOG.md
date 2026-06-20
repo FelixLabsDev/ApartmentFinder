@@ -1,8 +1,43 @@
 # ApartmentFinder — Development Log & Technical Documentation
 
-> **Last Updated**: 2026-05-29
+> **Last Updated**: 2026-06-20
 > **Status**: All phases complete (Steps 1–32). Full system operational with Yad2 + Facebook Marketplace + Madlan. Tag management, priority sort, and liked-first ordering available in the listings grid. Entire listing card is clickable to open detail modal. Global free-text search across all listing fields. Filter/sort/view state persisted across sessions via localStorage. Lightbox event propagation and Escape key handling fixed in detail modal. Optional WhatsApp integration per listing via Green API. Flexible hide-by-status/tag filtering in sidebar. Prev/Next navigation in listing detail modal. Balcony feature tag now reliably detected from numeric Yad2 field and additional Madlan field aliases. Listing update detection with UPDATED badge and auto-inserted system notes. WhatsApp toggle button overlap with sidebar fixed.
 > **Test suite**: 194 tests (193 unit + 1 integration).
+
+---
+
+## Session 34: Public GitHub Repository & Security Hardening (2026-06-20)
+
+### What Changed
+
+**Motivation**: Publish the project to a public GitHub repository without exposing credentials, session data, or local databases.
+
+**Repository**: [https://github.com/FelixLabsDev/ApartmentFinder](https://github.com/FelixLabsDev/ApartmentFinder)
+
+**Security work before publish**:
+
+| Action | Detail |
+|--------|--------|
+| Git history scrub | Removed `ApartmentFinder.zip` from entire git history — the archive contained `.env` (FB cookies, Telegram token), SQLite database, and browser profiles |
+| `.gitignore` hardened | Added `*.zip`, `data/*.db-wal`, `data/*.db-shm` |
+| Already gitignored | `.env`, `data/*.db`, `data/fb_profile/`, `data/madlan_profile/` |
+| History audit | No `.env` or `.db` files were ever committed directly; the zip archive was the only leak vector |
+
+**Documentation updated**:
+
+| File | Change |
+|------|--------|
+| `README.md` | Public repo link; contributor security / gitignore notes |
+| `ARCHITECTURE.md` | Repository URL; local secrets section |
+| `DEVELOPMENT_LOG.md` | This session entry |
+
+### Failed Approaches
+
+None documented for this release — the zip-in-history issue was resolved by rewriting history to drop the archive entirely.
+
+### What Succeeded
+
+History rewrite removed the zip bundle; `.gitignore` now blocks archives and SQLite WAL/SHM sidecar files; docs warn contributors not to commit local secrets or zip backups.
 
 ---
 

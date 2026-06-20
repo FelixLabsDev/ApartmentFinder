@@ -2,8 +2,21 @@
 
 Aggregates apartment rental listings from **Yad2**, **Facebook Marketplace**, and **Madlan.co.il** with filtering, deduplication, 5-tier quality ratings, custom listing tags, priority sorting, WhatsApp messaging per listing, and Telegram notifications.
 
+**Repository**: [github.com/FelixLabsDev/ApartmentFinder](https://github.com/FelixLabsDev/ApartmentFinder)
+
 > For detailed architecture and design decisions, see [ARCHITECTURE.md](ARCHITECTURE.md).
 > For the full development history, see [DEVELOPMENT_LOG.md](DEVELOPMENT_LOG.md).
+
+## Security (contributors)
+
+Never commit secrets or local runtime data. The following are **gitignored** and must stay on your machine only:
+
+- `.env` — Telegram bot token, Green API credentials, optional Facebook cookies
+- `data/*.db`, `data/*.db-wal`, `data/*.db-shm` — SQLite database and WAL/SHM sidecar files
+- `data/fb_profile/`, `data/madlan_profile/` — Playwright browser sessions (contain login state)
+- `*.zip` — project archives often bundle the files above
+
+Copy `.env.example` to `.env` and configure locally. Do not commit zip backups of the project folder.
 
 ## Prerequisites
 
